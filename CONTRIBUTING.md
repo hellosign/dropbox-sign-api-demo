@@ -176,8 +176,10 @@ We welcome feature requests! Please:
 
 ---
 
+## Contributor License Agreement
+
+All external contributions to this project are subject to the Dropbox Contributor License Agreement (CLA). When you open a pull request for the first time, the **cla-assistant** bot will guide you through the signing process. You only need to sign it once.
+
 ## License
 
-By contributing to this project, you agree that your contributions will be licensed under the MIT License.
-
-Thank you for contributing! 🎉
+By contributing to this project, you agree that your contributions will be licensed under the Apache License 2.0.
