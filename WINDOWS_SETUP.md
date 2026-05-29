@@ -97,7 +97,7 @@ cd projects
 #### Step 3: Clone the Repository
 
 ```bash
-git clone https://github.com/dbx-solutions/dbx-sign-api-demo-public.git
+git clone https://github.com/hellosign/dropbox-sign-api-demo.git
 cd dbx-sign-api-demo-public
 ```
 
@@ -107,7 +107,7 @@ cd dbx-sign-api-demo-public
 
 If you don't want to install Git:
 
-1. Go to: https://github.com/dbx-solutions/dbx-sign-api-demo-public
+1. Go to: https://github.com/hellosign/dropbox-sign-api-demo
 2. Click the green **"Code"** button
 3. Click **"Download ZIP"**
 4. Extract the ZIP file to your desired location
@@ -421,7 +421,7 @@ See the [Demo Script](./docs/DEMO_SCRIPT.md) for a complete walkthrough!
 
 - **Documentation:** Check the `/docs` folder
 - **API Issues:** [Dropbox Sign API Docs](https://developers.hellosign.com/)
-- **Bug Reports:** [GitHub Issues](https://github.com/dbx-solutions/dbx-sign-api-demo-public/issues)
+- **Bug Reports:** [GitHub Issues](https://github.com/hellosign/dropbox-sign-api-demo/issues)
 
 ---
 

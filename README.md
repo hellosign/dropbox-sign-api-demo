@@ -78,7 +78,7 @@ This demo portal enables Solutions Consultants to demonstrate the full power of 
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/dbx-solutions/dbx-sign-api-demo-public.git
+git clone https://github.com/hellosign/dropbox-sign-api-demo.git
 cd dbx-sign-api-demo-public
 ```
 
@@ -181,7 +181,7 @@ All configuration is done via `docker-compose.yml`. No `.env` file needed!
 #### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/dbx-solutions/dbx-sign-api-demo-public.git
+git clone https://github.com/hellosign/dropbox-sign-api-demo.git
 cd dbx-sign-api-demo-public
 ```
 
@@ -572,8 +572,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on contributing to this 
 For additional support:
 - **API Issues:** [Dropbox Sign API Documentation](https://developers.hellosign.com/)
 - **Account Help:** [Dropbox Sign Support](https://help.hellosign.com/)
-- **Bug Reports:** [GitHub Issues](https://github.com/dbx-solutions/dbx-sign-api-demo-public/issues)
-- **Feature Requests:** [GitHub Issues](https://github.com/dbx-solutions/dbx-sign-api-demo-public/issues)
+- **Bug Reports:** [GitHub Issues](https://github.com/hellosign/dropbox-sign-api-demo/issues)
+- **Feature Requests:** [GitHub Issues](https://github.com/hellosign/dropbox-sign-api-demo/issues)
 
 ---
 

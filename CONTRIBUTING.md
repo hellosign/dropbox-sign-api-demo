@@ -15,7 +15,7 @@ Thank you for your interest in contributing to the Dropbox Sign Demo Portal! Thi
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/dbx-solutions/dbx-sign-api-demo-public.git
+   git clone https://github.com/hellosign/dropbox-sign-api-demo.git
    cd dbx-sign-api-demo-public
    ```
 
@@ -144,7 +144,7 @@ Then create a Pull Request on GitHub with:
 
 ### Before Reporting
 
-- Check [existing issues](https://github.com/dbx-solutions/dbx-sign-api-demo-public/issues) to avoid duplicates
+- Check [existing issues](https://github.com/hellosign/dropbox-sign-api-demo/issues) to avoid duplicates
 - Verify the bug exists in the latest version
 
 ### Bug Report Should Include
@@ -171,7 +171,7 @@ We welcome feature requests! Please:
 ## Questions or Need Help?
 
 - **Documentation**: Check the `/docs` folder
-- **Issues**: [GitHub Issues](https://github.com/dbx-solutions/dbx-sign-api-demo-public/issues)
+- **Issues**: [GitHub Issues](https://github.com/hellosign/dropbox-sign-api-demo/issues)
 - **Dropbox Sign API**: [Official API Documentation](https://developers.hellosign.com/)
 
 ---

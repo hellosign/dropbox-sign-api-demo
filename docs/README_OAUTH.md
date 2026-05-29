@@ -287,11 +287,11 @@ app.use(session({
 
 ## Documentation
 
-- [Full OAuth Deployment Guide](./docs/OAUTH_DEPLOYMENT.md)
-- [Access Control Configuration](./docs/ACCESS_CONTROL.md)
-- [Data Isolation Details](./docs/OAUTH_DATA_ISOLATION.md)
-- [OAuth Setup Guide](./docs/OAUTH_SETUP.md)
-- [Troubleshooting: Template Creation](./docs/TEMPLATE_CREATION_FIX.md)
+- [Full OAuth Deployment Guide](./authentication/OAUTH_DEPLOYMENT.md)
+- [Access Control Configuration](./authentication/ACCESS_CONTROL.md)
+- [Data Isolation Details](./architecture/OAUTH_DATA_ISOLATION.md)
+- [OAuth Setup Guide](./authentication/OAUTH_SETUP.md)
+- [Troubleshooting: Text Tags](./features/TEXT_TAGS_LIMITATION.md)
 - [OAuth Test Page](http://localhost:3001/oauth-test)
 
 ## Support
