@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="{{locale}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Admin - Translation Management</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/error-logger.js"></script>
+  <script src="/console-logger.js"></script>
+  <script src="/toast.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-title {
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .admin-title img {
+      height: 80px;
+      width: auto;
+    }
+
+    .admin-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: #5e5e5e;
+    }
+
+    .back-link {
+      padding: 8px 16px;
+      background: #0061FF;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .back-link:hover {
+      background: #0047B3;
+    }
+
+    .admin-nav {
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+    }
+
+    .admin-nav a {
+      padding: 12px 24px;
+      color: #64748b;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .admin-nav a:hover {
+      color: #1e293b;
+    }
+
+    .admin-nav a.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .info-banner {
+      background: #e7f3ff;
+      border: 1px solid #b3d9ff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      color: #004085;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .info-banner strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .git-status-card {
+      background: white;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .git-status-card h3 {
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: #5e5e5e;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .git-commit {
+      font-size: 13px;
+      color: #1a1a1a;
+      font-family: 'SF Mono', Monaco, monospace;
+      line-height: 1.6;
+    }
+
+    .controls-card {
+      background: white;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .control-group label {
+      font-size: 14px;
+      color: #5e5e5e;
+      font-weight: 500;
+    }
+
+    .control-group select {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: white;
+      cursor: pointer;
+    }
+
+    .control-group input[type="search"] {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      min-width: 300px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #0061FF;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0047B3;
+    }
+
+    .btn-primary:disabled {
+      background: #b3d9ff;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #f5f7fa;
+      color: #5e5e5e;
+      border: 1px solid #e1e4e8;
+    }
+
+    .btn-secondary:hover {
+      background: #e8ecf0;
+    }
+
+    .translations-card {
+      background: white;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .table-header {
+      display: grid;
+      grid-template-columns: 280px 1fr 1fr 100px;
+      gap: 16px;
+      padding: 16px 20px;
+      background: #f5f7fa;
+      border-bottom: 1px solid #e1e4e8;
+      font-size: 12px;
+      font-weight: 600;
+      color: #5e5e5e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .table-row {
+      display: grid;
+      grid-template-columns: 280px 1fr 1fr 100px;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid #f0f2f5;
+      align-items: start;
+    }
+
+    .table-row:hover {
+      background: #f9fafb;
+    }
+
+    .table-row:last-child {
+      border-bottom: none;
+    }
+
+    .translation-key {
+      font-family: 'SF Mono', Monaco, monospace;
+      font-size: 13px;
+      color: #5e5e5e;
+      word-break: break-all;
+    }
+
+    .translation-value {
+      font-size: 14px;
+      color: #1a1a1a;
+      line-height: 1.5;
+    }
+
+    .translation-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 38px;
+    }
+
+    .translation-input:focus {
+      outline: none;
+      border-color: #0061FF;
+      box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1);
+    }
+
+    .edit-btn {
+      padding: 6px 16px;
+      background: #f5f7fa;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #1a1a1a;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .edit-btn:hover {
+      background: #e8ecf0;
+      border-color: #d1d5db;
+    }
+
+    .save-btn {
+      padding: 6px 16px;
+      background: #10b981;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      color: white;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .save-btn:hover {
+      background: #059669;
+    }
+
+    .stats-footer {
+      margin-top: 24px;
+      padding: 16px 20px;
+      background: white;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #5e5e5e;
+    }
+
+    .changed-indicator {
+      color: #10b981;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-header">
+    <h1 class="admin-title"><img src="/admin_panel_fit.png" alt="Dropbox Sign Demo Admin Panel"></h1>
+    <div class="admin-user">
+      <span>Signed in as: <strong>{{userEmail}}</strong></span>
+      <a href="/" class="back-link">← Back to Portal</a>
+    </div>
+  </div>
+
+  <nav class="admin-nav">
+    <a href="/admin">Users & System</a>
+    <a href="/admin/translations" class="active">Translation Management</a>
+    <a href="/admin/tooltip-management">Tooltip Management</a>
+    <a href="/admin/access-control">Access Control</a>
+    <a href="/admin/security">Security Dashboard</a>
+    <a href="/admin/theme-management">Theme Management</a>
+  </nav>
+
+  <div class="admin-container">
+    <div class="info-banner">
+      <strong>ℹ️ Translation Management</strong>
+      Edit translations for all supported languages. Changes are saved to JSON files in the <code>locales/</code> directory.
+      {{#if gitStatus}}In production, changes are automatically committed to git.{{/if}}
+    </div>
+
+    {{#if gitStatus}}
+    <div class="git-status-card">
+      <h3>Last Translation Update</h3>
+      {{#if gitStatus.error}}
+      <p style="color:#5e5e5e; font-size:13px;">{{gitStatus.error}}</p>
+      {{else}}
+      <div class="git-commit">
+        <strong>{{gitStatus.hash}}</strong> {{gitStatus.time}}<br>
+        {{gitStatus.message}}
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+
+    <div class="controls-card">
+      <div class="controls-row">
+        <div class="control-group">
+          <label for="localeSelect">Language:</label>
+          <select id="localeSelect">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="ja">日本語</option>
+          </select>
+        </div>
+
+        <div class="control-group" style="flex: 1;">
+          <label for="searchInput">Search:</label>
+          <input type="search" id="searchInput" placeholder="Search by key or value...">
+        </div>
+
+        <button id="saveAllBtn" class="btn btn-primary">💾 Save All Changes</button>
+        <button id="reloadBtn" class="btn btn-secondary">🔄 Reload</button>
+      </div>
+    </div>
+
+    <div class="translations-card">
+      <div class="table-header">
+        <div>Translation Key</div>
+        <div>English</div>
+        <div>Current Language</div>
+        <div>Action</div>
+      </div>
+      <div id="translationsContainer"></div>
+    </div>
+
+    <div class="stats-footer">
+      <strong id="statsText">Loading translations...</strong>
+    </div>
+  </div>
+
+  <script>
+    const translations = {{{json translations}}};
+    const locales = {{{json locales}}};
+    let currentLocale = 'en';
+    let editingKeys = new Set();
+    let changes = {};
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function editRow(key) {
+      editingKeys.add(key);
+      renderTranslations();
+      const input = document.querySelector(`textarea[data-key="${key}"]`);
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }
+
+    function saveRow(key) {
+      const input = document.querySelector(`textarea[data-key="${key}"]`);
+      if (input) {
+        const newValue = input.value;
+        if (newValue !== translations[currentLocale][key]) {
+          changes[key] = newValue;
+        } else {
+          delete changes[key];
+        }
+      }
+      editingKeys.delete(key);
+      renderTranslations();
+    }
+
+    function renderTranslations() {
+      const container = document.getElementById('translationsContainer');
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+      const enTranslations = translations['en'] || {};
+      const currentTranslations = translations[currentLocale] || {};
+
+      const keys = Object.keys(enTranslations).filter(k => !k.startsWith('_'));
+      const filteredKeys = searchTerm
+        ? keys.filter(k =>
+            k.toLowerCase().includes(searchTerm) ||
+            enTranslations[k]?.toLowerCase().includes(searchTerm) ||
+            currentTranslations[k]?.toLowerCase().includes(searchTerm)
+          )
+        : keys;
+
+      container.innerHTML = filteredKeys.map(key => {
+        const enValue = enTranslations[key] || '';
+        const currentValue = currentTranslations[key] || '';
+        const isEditing = editingKeys.has(key);
+        const hasChanges = changes[key] !== undefined;
+
+        return `
+          <div class="table-row" data-key="${key}">
+            <div class="translation-key">${escapeHtml(key)}</div>
+            <div class="translation-value">${escapeHtml(enValue)}</div>
+            <div class="translation-value">
+              ${isEditing
+                ? `<textarea class="translation-input" data-key="${key}">${escapeHtml(hasChanges ? changes[key] : currentValue)}</textarea>`
+                : `<span class="${hasChanges ? 'changed-indicator' : ''}">${escapeHtml(hasChanges ? changes[key] : currentValue)}</span>`
+              }
+            </div>
+            <div>
+              ${isEditing
+                ? `<button class="save-btn" data-action="save" data-key="${key}">✓ Save</button>`
+                : `<button class="edit-btn" data-action="edit" data-key="${key}">Edit</button>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateStats(filteredKeys.length, keys.length);
+    }
+
+    function updateStats(filtered, total) {
+      const changesCount = Object.keys(changes).length;
+      const changesText = changesCount > 0
+        ? `<span class="changed-indicator">${changesCount} unsaved change${changesCount !== 1 ? 's' : ''}</span>`
+        : '0 unsaved changes';
+      document.getElementById('statsText').innerHTML =
+        `Showing ${filtered} of ${total} translations | ${changesText}`;
+    }
+
+    async function saveAllChanges() {
+      if (Object.keys(changes).length === 0) {
+        showErrorToast('No changes to save');
+        return;
+      }
+
+      const saveBtn = document.getElementById('saveAllBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = '💾 Saving...';
+
+      try {
+        const updatedTranslations = { ...translations[currentLocale], ...changes };
+
+        const response = await fetch('/admin/translations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            locale: currentLocale,
+            translations: updatedTranslations
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          translations[currentLocale] = updatedTranslations;
+          changes = {};
+          editingKeys.clear();
+
+          let message = data.message;
+          if (data.gitCommitted) {
+            message += ` (Commit: ${data.commitHash})`;
+          }
+          if (data.requiresPull) {
+            message += ' - Run git pull in other environments';
+          }
+
+          showSuccessToast(message);
+          renderTranslations();
+        } else {
+          showErrorToast(data.error || 'Failed to save');
+        }
+      } catch (error) {
+        showErrorToast('Network error: ' + error.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Save All Changes';
+      }
+    }
+
+    async function reloadTranslations() {
+      const reloadBtn = document.getElementById('reloadBtn');
+      reloadBtn.disabled = true;
+      reloadBtn.textContent = '🔄 Reloading...';
+
+      try {
+        const response = await fetch('/admin/translations/reload', {
+          method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showSuccessToast('Translations reloaded successfully');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showErrorToast(data.error || 'Failed to reload');
+        }
+      } catch (error) {
+        showErrorToast('Network error: ' + error.message);
+      } finally {
+        reloadBtn.disabled = false;
+        reloadBtn.textContent = '🔄 Reload';
+      }
+    }
+
+    // Event delegation for edit/save buttons
+    document.getElementById('translationsContainer').addEventListener('click', (e) => {
+      const button = e.target.closest('button[data-action]');
+      if (!button) return;
+
+      const action = button.getAttribute('data-action');
+      const key = button.getAttribute('data-key');
+
+      if (action === 'edit') {
+        editRow(key);
+      } else if (action === 'save') {
+        saveRow(key);
+      }
+    });
+
+    // Event listeners
+    document.getElementById('localeSelect').addEventListener('change', (e) => {
+      if (Object.keys(changes).length > 0) {
+        if (!confirm('You have unsaved changes. Switch language anyway?')) {
+          e.target.value = currentLocale;
+          return;
+        }
+      }
+      currentLocale = e.target.value;
+      changes = {};
+      editingKeys.clear();
+      renderTranslations();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderTranslations);
+    document.getElementById('saveAllBtn').addEventListener('click', saveAllChanges);
+    document.getElementById('reloadBtn').addEventListener('click', reloadTranslations);
+
+    // Set initial locale dropdown value
+    document.getElementById('localeSelect').value = currentLocale;
+
+    // Initial render
+    renderTranslations();
+  </script>
+</body>
+</html>

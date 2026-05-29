@@ -1,0 +1,55 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: sign-demo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  app:
+    build: .
+    container_name: sign-demo-app
+    ports:
+      - "3001:3001"
+    environment:
+      # Server Configuration
+      - NODE_ENV=development
+      - PORT=3001
+      - DOMAIN=localhost
+      - BASE_URL=http://localhost:3001
+
+      # Redis Configuration
+      - REDIS_URL=redis://redis:6379
+
+      # Dropbox Sign Configuration
+      - CALLBACK_URL=http://localhost:3001/events/callback
+
+      # Security Configuration (auto-generated if empty)
+      - SESSION_SECRET=${SESSION_SECRET:-}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
+      - CSRF_SECRET=${CSRF_SECRET:-}
+
+      # Access Control - EDIT THIS LINE with your email
+      - ADMIN_EMAILS=admin@example.com
+      - ALLOWED_DOMAINS=
+      - ALLOWED_EMAILS=
+
+      # Logging
+      - VERBOSE_LOGGING=false
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      # Mount data directory for persistence
+      - ./data:/app/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:

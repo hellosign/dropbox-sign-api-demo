@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Admin - Access Control</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/toast.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-title {
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .admin-title img {
+      height: 80px;
+      width: auto;
+    }
+
+    .admin-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: #5e5e5e;
+    }
+
+    .back-link {
+      padding: 8px 16px;
+      background: #0061FF;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .back-link:hover {
+      background: #0047B3;
+    }
+
+    .admin-nav {
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+    }
+
+    .admin-nav a {
+      padding: 12px 24px;
+      color: #64748b;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .admin-nav a:hover {
+      color: #1e293b;
+    }
+
+    .admin-nav a.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .section {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .section h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 20px 0;
+    }
+
+    .section-description {
+      font-size: 14px;
+      color: #5e5e5e;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .baseline-info {
+      background: #f5f7fa;
+      border-left: 4px solid #0061FF;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #5e5e5e;
+      margin-bottom: 20px;
+    }
+
+    .baseline-info strong {
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: white;
+    }
+
+    .list-item:hover {
+      background: #f5f7fa;
+    }
+
+    .list-item-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    .list-item-text {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a1a1a;
+      font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+    }
+
+    .list-item-count {
+      font-size: 12px;
+      color: #5e5e5e;
+      background: #e1e4e8;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .list-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-remove {
+      padding: 6px 12px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-remove:hover {
+      background: #c82333;
+    }
+
+    .btn-force-logout {
+      padding: 6px 12px;
+      background: #ff8533;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-force-logout:hover {
+      background: #e67326;
+    }
+
+    .btn-force-logout:disabled {
+      background: #d9d9d9;
+      color: #8c8c8c;
+      cursor: not-allowed;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .add-form input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 2px solid #d9d9d9;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+    }
+
+    .add-form input:focus {
+      outline: none;
+      border-color: #0061FF;
+      box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1);
+    }
+
+    .add-form button {
+      padding: 10px 20px;
+      background: #0061FF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .add-form button:hover {
+      background: #0047B3;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #5e5e5e;
+      font-size: 14px;
+    }
+
+    .warning-box {
+      background: #fff3e6;
+      border-left: 4px solid #ff8533;
+      padding: 12px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #cc5500;
+      margin-top: 20px;
+    }
+
+    .warning-box strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-header">
+    <h1 class="admin-title"><img src="/admin_panel_fit.png" alt="Dropbox Sign Demo Admin Panel"></h1>
+    <div class="admin-user">
+      <span>Signed in as: <strong>{{userEmail}}</strong></span>
+      <a href="/" class="back-link">← Back to Portal</a>
+    </div>
+  </div>
+
+  <nav class="admin-nav">
+    <a href="/admin">Users & System</a>
+    <a href="/admin/translations">Translation Management</a>
+    <a href="/admin/tooltip-management">Tooltip Management</a>
+    <a href="/admin/access-control" class="active">Access Control</a>
+    <a href="/admin/security">Security Dashboard</a>
+    <a href="/admin/theme-management">Theme Management</a>
+  </nav>
+
+  <div class="admin-container">
+    <!-- Allowed Domains Section -->
+    <div class="section">
+      <h2>Allowed Domains</h2>
+      <p class="section-description">
+        Users with email addresses from these domains can log in to the portal.
+        Removing a domain blocks NEW logins but keeps existing sessions active until you force logout.
+      </p>
+
+      <div class="baseline-info">
+        <strong>.env Baseline (fallback):</strong> <span id="baselineDomains">Loading...</span>
+      </div>
+
+      <div id="domainsList">
+        <div class="empty-state">Loading...</div>
+      </div>
+
+      <form class="add-form" id="addDomainForm">
+        <input type="text" id="domainInput" data-tooltip="allowedDomains" placeholder="example.com" pattern="[a-z0-9-]+(\.[a-z0-9-]+)+" required>
+        <button type="submit">Add Domain</button>
+      </form>
+    </div>
+
+    <!-- Allowed Emails Section -->
+    <div class="section">
+      <h2>Allowed Emails</h2>
+      <p class="section-description">
+        Specific email addresses allowed to log in (overrides domain check).
+        Removing an email blocks NEW logins but keeps existing sessions active until you force logout.
+      </p>
+
+      <div class="baseline-info">
+        <strong>.env Baseline (fallback):</strong> <span id="baselineEmails">Loading...</span>
+      </div>
+
+      <div id="emailsList">
+        <div class="empty-state">Loading...</div>
+      </div>
+
+      <form class="add-form" id="addEmailForm">
+        <input type="email" id="emailInput" data-tooltip="allowedEmails" placeholder="user@example.com" required>
+        <button type="submit">Add Email</button>
+      </form>
+    </div>
+
+    <!-- Admin Emails Section -->
+    <div class="section">
+      <h2>Admin Emails</h2>
+      <p class="section-description">
+        Users with these email addresses have admin access to the Admin Panel.
+        Removing an admin takes effect on their next page load.
+      </p>
+
+      <div class="baseline-info">
+        <strong>.env Baseline (fallback):</strong> <span id="baselineAdmins">Loading...</span>
+      </div>
+
+      <div id="adminsList">
+        <div class="empty-state">Loading...</div>
+      </div>
+
+      <form class="add-form" id="addAdminForm">
+        <input type="email" id="adminInput" data-tooltip="adminEmails" placeholder="admin@example.com" required>
+        <button type="submit">Add Admin</button>
+      </form>
+    </div>
+
+    <!-- Warning Box -->
+    <div class="warning-box">
+      <strong>⚠️ Important Notes:</strong>
+      <strong>Access Control:</strong><br>
+      • Removing domains/emails blocks NEW logins immediately<br>
+      • Existing logged-in users stay active (grace period)<br>
+      • Use "Force Logout" to immediately kick out active sessions<br>
+      • You cannot remove your own domain/email (prevents lockout)<br>
+      <br>
+      <strong>Admin Access:</strong><br>
+      • Removing admin takes effect on their next page load<br>
+      • You cannot remove yourself (prevents lockout)<br>
+      • Cannot remove the last admin (system would be locked)<br>
+      • All changes are logged to Security Dashboard
+    </div>
+  </div>
+
+  <script>
+    let currentSettings = null;
+    const adminEmail = '{{userEmail}}';
+
+    // Load settings
+    async function loadSettings() {
+      try {
+        const res = await fetch('/admin/api/access-control');
+        const data = await res.json();
+
+        if (data.success) {
+          currentSettings = data;
+
+          // Display baseline
+          document.getElementById('baselineDomains').textContent =
+            data.baseline.domains.join(', ') || '(none)';
+          document.getElementById('baselineEmails').textContent =
+            data.baseline.emails.length > 0 ? `${data.baseline.emails.length} specific emails` : '(none)';
+          document.getElementById('baselineAdmins').textContent =
+            data.baseline.admins.length > 0 ? `${data.baseline.admins.length} admins` : '(none)';
+
+          // Render domains
+          renderDomains(data.current.domains, data.sessionCounts.domains);
+
+          // Render emails
+          renderEmails(data.current.emails, data.sessionCounts.emails);
+
+          // Render admins
+          renderAdmins(data.current.admins);
+        }
+      } catch (err) {
+        console.error('Error loading settings:', err);
+        showToast('Failed to load access control settings', 'error');
+      }
+    }
+
+    // Render domains list
+    function renderDomains(domains, sessionCounts) {
+      const container = document.getElementById('domainsList');
+
+      if (domains.length === 0) {
+        container.innerHTML = '<div class="empty-state">No domains configured (falling back to .env)</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      domains.forEach(domain => {
+        const count = sessionCounts[domain] || 0;
+        const adminDomain = adminEmail.split('@')[1];
+        const isOwnDomain = domain === adminDomain;
+
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div class="list-item-content">
+            <span class="list-item-text">@${domain}</span>
+            ${count > 0 ? `<span class="list-item-count">${count} active session${count > 1 ? 's' : ''}</span>` : ''}
+          </div>
+          <div class="list-item-actions">
+            <button class="btn-force-logout" data-domain="${domain}" data-tooltip="forceLogoutBtn" ${count === 0 || isOwnDomain ? 'disabled' : ''}>
+              Force Logout ${count > 0 ? `(${count})` : ''}
+            </button>
+            <button class="btn-remove" data-domain="${domain}" data-tooltip="removeDomainBtn" ${isOwnDomain ? 'disabled' : ''}>
+              Remove
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+
+        // Add event listeners
+        const forceLogoutBtn = item.querySelector('.btn-force-logout');
+        const removeBtn = item.querySelector('.btn-remove');
+
+        if (forceLogoutBtn && !forceLogoutBtn.disabled) {
+          forceLogoutBtn.addEventListener('click', () => forceLogoutDomain(domain));
+        }
+
+        if (removeBtn && !removeBtn.disabled) {
+          removeBtn.addEventListener('click', () => removeDomain(domain));
+        }
+      });
+    }
+
+    // Render emails list
+    function renderEmails(emails, sessionCounts) {
+      const container = document.getElementById('emailsList');
+
+      if (emails.length === 0) {
+        container.innerHTML = '<div class="empty-state">No specific emails configured</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      emails.forEach(email => {
+        const count = sessionCounts[email] || 0;
+        const isOwnEmail = email === adminEmail.toLowerCase();
+
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div class="list-item-content">
+            <span class="list-item-text">${email}</span>
+            ${count > 0 ? `<span class="list-item-count">${count} active session${count > 1 ? 's' : ''}</span>` : ''}
+          </div>
+          <div class="list-item-actions">
+            <button class="btn-force-logout" data-email="${email}" data-tooltip="forceLogoutBtn" ${count === 0 || isOwnEmail ? 'disabled' : ''}>
+              Force Logout ${count > 0 ? `(${count})` : ''}
+            </button>
+            <button class="btn-remove" data-email="${email}" data-tooltip="removeEmailBtn" ${isOwnEmail ? 'disabled' : ''}>
+              Remove
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+
+        // Add event listeners
+        const forceLogoutBtn = item.querySelector('.btn-force-logout');
+        const removeBtn = item.querySelector('.btn-remove');
+
+        if (forceLogoutBtn && !forceLogoutBtn.disabled) {
+          forceLogoutBtn.addEventListener('click', () => forceLogoutEmail(email));
+        }
+
+        if (removeBtn && !removeBtn.disabled) {
+          removeBtn.addEventListener('click', () => removeEmail(email));
+        }
+      });
+    }
+
+    // Add domain
+    document.getElementById('addDomainForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const domain = document.getElementById('domainInput').value.trim().toLowerCase();
+
+      try {
+        const res = await fetch('/admin/api/access-control/add-domain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Domain @${domain} added`, 'success');
+          document.getElementById('domainInput').value = '';
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to add domain', 'error');
+        }
+      } catch (err) {
+        console.error('Error adding domain:', err);
+        showToast('Failed to add domain', 'error');
+      }
+    });
+
+    // Remove domain
+    async function removeDomain(domain) {
+      if (!confirm(`Remove @${domain} from whitelist?\n\nThis will block NEW logins from this domain.\nExisting sessions remain active until you force logout.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/api/access-control/remove-domain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Domain @${domain} removed`, 'success');
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to remove domain', 'error');
+        }
+      } catch (err) {
+        console.error('Error removing domain:', err);
+        showToast('Failed to remove domain', 'error');
+      }
+    }
+
+    // Force logout domain
+    async function forceLogoutDomain(domain) {
+      const count = currentSettings?.sessionCounts?.domains[domain] || 0;
+
+      if (!confirm(`Force logout all users from @${domain}?\n\nThis will immediately log out ${count} active session${count > 1 ? 's' : ''}.\n\nThey will need to log in again (and will be blocked if domain was removed).`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/api/access-control/force-logout-domain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Logged out ${data.deletedCount} session(s) from @${domain}`, 'success');
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to force logout', 'error');
+        }
+      } catch (err) {
+        console.error('Error force logout:', err);
+        showToast('Failed to force logout', 'error');
+      }
+    }
+
+    // Add email
+    document.getElementById('addEmailForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('emailInput').value.trim().toLowerCase();
+
+      try {
+        const res = await fetch('/admin/api/access-control/add-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Email ${email} added`, 'success');
+          document.getElementById('emailInput').value = '';
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to add email', 'error');
+        }
+      } catch (err) {
+        console.error('Error adding email:', err);
+        showToast('Failed to add email', 'error');
+      }
+    });
+
+    // Remove email
+    async function removeEmail(email) {
+      if (!confirm(`Remove ${email} from whitelist?\n\nThis will block NEW logins for this email.\nExisting sessions remain active until you force logout.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/api/access-control/remove-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Email ${email} removed`, 'success');
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to remove email', 'error');
+        }
+      } catch (err) {
+        console.error('Error removing email:', err);
+        showToast('Failed to remove email', 'error');
+      }
+    }
+
+    // Force logout email
+    async function forceLogoutEmail(email) {
+      const count = currentSettings?.sessionCounts?.emails[email] || 0;
+
+      if (!confirm(`Force logout ${email}?\n\nThis will immediately log out ${count} active session${count > 1 ? 's' : ''}.\n\nThey will need to log in again (and will be blocked if email was removed).`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/api/access-control/force-logout-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Logged out ${data.deletedCount} session(s) for ${email}`, 'success');
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to force logout', 'error');
+        }
+      } catch (err) {
+        console.error('Error force logout:', err);
+        showToast('Failed to force logout', 'error');
+      }
+    }
+
+    // Initialize
+    loadSettings();
+
+    // Render admins list
+    function renderAdmins(admins) {
+      const container = document.getElementById('adminsList');
+
+      if (admins.length === 0) {
+        container.innerHTML = '<div class="empty-state">No admins configured (falling back to .env)</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      admins.forEach(email => {
+        const isOwnEmail = email === adminEmail.toLowerCase();
+
+        const item = document.createElement('div');
+        item.className = 'list-item';
+        item.innerHTML = `
+          <div class="list-item-content">
+            <span class="list-item-text">${email}</span>
+            ${isOwnEmail ? '<span class="list-item-count">You</span>' : ''}
+          </div>
+          <div class="list-item-actions">
+            <button class="btn-remove" data-admin="${email}" data-tooltip="removeAdminBtn" ${isOwnEmail || admins.length === 1 ? 'disabled' : ''}>
+              Remove
+            </button>
+          </div>
+        `;
+        container.appendChild(item);
+
+        // Add event listener
+        const removeBtn = item.querySelector('.btn-remove');
+        if (removeBtn && !removeBtn.disabled) {
+          removeBtn.addEventListener('click', () => removeAdmin(email));
+        }
+      });
+    }
+
+    // Add admin
+    document.getElementById('addAdminForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('adminInput').value.trim().toLowerCase();
+
+      try {
+        const res = await fetch('/admin/api/access-control/add-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Admin ${email} added`, 'success');
+          document.getElementById('adminInput').value = '';
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to add admin', 'error');
+        }
+      } catch (err) {
+        console.error('Error adding admin:', err);
+        showToast('Failed to add admin', 'error');
+      }
+    });
+
+    // Remove admin
+    async function removeAdmin(email) {
+      if (!confirm(`Remove ${email} from admin list?\n\nThey will lose admin access on their next page load.`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/api/access-control/remove-admin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(`Admin ${email} removed`, 'success');
+          loadSettings();
+        } else {
+          showToast(data.error || 'Failed to remove admin', 'error');
+        }
+      } catch (err) {
+        console.error('Error removing admin:', err);
+        showToast('Failed to remove admin', 'error');
+      }
+    }
+
+    // Auto-refresh every 30 seconds
+    setInterval(loadSettings, 30000);
+  </script>
+</body>
+</html>

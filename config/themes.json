@@ -1,0 +1,191 @@
+{
+  "people_employment": {
+    "id": "people_employment",
+    "name": "People & Employment",
+    "pageTitle": "Manage Employment Contract",
+    "tabLabel": "New Contract",
+    "sections": {
+      "left": {
+        "title": "Employee Details",
+        "fields": [
+          {
+            "id": "name",
+            "label": "Employee Name",
+            "type": "text",
+            "defaultValue": "Jean Machine"
+          },
+          {
+            "id": "email",
+            "label": "Employee Email",
+            "type": "email",
+            "defaultValue": "signer1@example.com"
+          }
+        ],
+        "secondSigner": {
+          "name": "Jim Baker",
+          "email": "signer2@example.com"
+        }
+      },
+      "right": {
+        "title": "Employment Details",
+        "fields": [
+          {
+            "id": "field1",
+            "label": "Job Title",
+            "type": "text",
+            "defaultValue": "Senior Software Engineer"
+          },
+          {
+            "id": "field2",
+            "label": "Department",
+            "type": "text",
+            "defaultValue": "Product Engineering"
+          },
+          {
+            "id": "field3",
+            "label": "Annual Salary",
+            "type": "text",
+            "defaultValue": "$120,000"
+          }
+        ]
+      }
+    },
+    "buttons": {
+      "send": "Send for Signature (Template)",
+      "preview": "Preview Contract",
+      "embed": "View & Sign (Embedded Template)"
+    },
+    "email": {
+      "subject": "Employment Contract",
+      "message": "Please review and sign your Employment Contract. Let us know if you have any questions."
+    },
+    "documentTemplate": "hr-employment-contract",
+    "documentContent": "# NON-DISCLOSURE AGREEMENT\n\n**Effective Date:** [date|req|signer1]\n\n**Between:** {{signerName1}} ({{signerEmail1}}) and the Receiving Party\n\n---\n\n## 1. PURPOSE\n\nThe parties wish to explore a business opportunity and may disclose confidential information that must be protected against unauthorized disclosure.\n\n## 2. CONFIDENTIAL INFORMATION\n\n\"Confidential Information\" means any information disclosed by either party, including business plans, technical data, trade secrets, customer lists, and any information designated as \"Confidential\".\n\n## 3. OBLIGATIONS\n\nThe Receiving Party agrees to hold all Confidential Information in strict confidence, not disclose it to third parties without prior written consent, and use it solely for evaluating the business relationship.\n\n## 4. ACKNOWLEDGMENT\n\nI acknowledge that I have read and understand this Agreement: [check|req|signer1]\n\nInitial here: [initial|req|signer1]\n\n<div style=\"page-break-after: always;\"></div>\n\n# NON-DISCLOSURE AGREEMENT (Page 2)\n\n## 5. EXCLUSIONS\n\nObligations do not apply to information that was publicly available, rightfully possessed prior to disclosure, or independently developed.\n\n## 6. TERM\n\nThis Agreement continues for three (3) years. Confidentiality obligations survive for five (5) years from last disclosure.\n\n## 7. GOVERNING LAW\n\nGoverned by the laws of England and Wales.\n\n---\n\n## SIGNATURE\n\n**Signature:** [sig|req|signer1]\n\n**Name:** {{signerName1}}\n\n**Date:** [date|req|signer1]\n"
+  },
+  "subscription_agreement": {
+    "id": "subscription_agreement",
+    "name": "Subscription Agreement",
+    "pageTitle": "Manage SaaS Subscription",
+    "tabLabel": "New Subscription",
+    "sections": {
+      "left": {
+        "title": "Customer Details",
+        "fields": [
+          {
+            "id": "name",
+            "label": "Customer Name",
+            "type": "text",
+            "defaultValue": "Jean Machine"
+          },
+          {
+            "id": "email",
+            "label": "Customer Email",
+            "type": "email",
+            "defaultValue": "signer1@example.com"
+          }
+        ],
+        "secondSigner": {
+          "name": "Jim Baker",
+          "email": "signer2@example.com"
+        }
+      },
+      "right": {
+        "title": "Subscription Details",
+        "fields": [
+          {
+            "id": "field1",
+            "label": "Company Address",
+            "type": "text",
+            "defaultValue": "200 Park Avenue, New York, NY 10166, US"
+          },
+          {
+            "id": "field2",
+            "label": "Plan",
+            "type": "text",
+            "defaultValue": "Enterprise"
+          },
+          {
+            "id": "field3",
+            "label": "Licensed Users",
+            "type": "text",
+            "defaultValue": "50"
+          }
+        ]
+      }
+    },
+    "buttons": {
+      "send": "Send for Signature (Template)",
+      "preview": "Preview Agreement",
+      "embed": "View & Sign (Embedded Template)"
+    },
+    "email": {
+      "subject": "SaaS Subscription Agreement",
+      "message": "Please review and sign the SaaS Subscription Agreement. Let us know if you have any questions."
+    },
+    "documentTemplate": "saas-subscription",
+    "documentContent": "# NON-DISCLOSURE AGREEMENT\n\n**Effective Date:** [date|req|signer1]\n\n**Between:** {{signerName1}} ({{signerEmail1}}) and the Receiving Party\n\n---\n\n## 1. PURPOSE\n\nThe parties wish to explore a business opportunity and may disclose confidential information that must be protected against unauthorized disclosure.\n\n## 2. CONFIDENTIAL INFORMATION\n\n\"Confidential Information\" means any information disclosed by either party, including business plans, technical data, trade secrets, customer lists, and any information designated as \"Confidential\".\n\n## 3. OBLIGATIONS\n\nThe Receiving Party agrees to hold all Confidential Information in strict confidence, not disclose it to third parties without prior written consent, and use it solely for evaluating the business relationship.\n\n## 4. ACKNOWLEDGMENT\n\nI acknowledge that I have read and understand this Agreement: [check|req|signer1]\n\nInitial here: [initial|req|signer1]\n\n<div style=\"page-break-after: always;\"></div>\n\n# NON-DISCLOSURE AGREEMENT (Page 2)\n\n## 5. EXCLUSIONS\n\nObligations do not apply to information that was publicly available, rightfully possessed prior to disclosure, or independently developed.\n\n## 6. TERM\n\nThis Agreement continues for three (3) years. Confidentiality obligations survive for five (5) years from last disclosure.\n\n## 7. GOVERNING LAW\n\nGoverned by the laws of England and Wales.\n\n---\n\n## SIGNATURE\n\n**Signature:** [sig|req|signer1]\n\n**Name:** {{signerName1}}\n\n**Date:** [date|req|signer1]\n"
+  },
+  "selling_mandate": {
+    "id": "selling_mandate",
+    "name": "Selling Mandate",
+    "pageTitle": "Manage Selling Mandate",
+    "tabLabel": "New Mandate",
+    "sections": {
+      "left": {
+        "title": "Clients Details",
+        "fields": [
+          {
+            "id": "name",
+            "label": "Name",
+            "type": "text",
+            "defaultValue": "Jean Machine"
+          },
+          {
+            "id": "email",
+            "label": "Email",
+            "type": "email",
+            "defaultValue": "signer1@example.com"
+          }
+        ],
+        "secondSigner": {
+          "name": "Jim Baker",
+          "email": "signer2@example.com"
+        }
+      },
+      "right": {
+        "title": "Property Information",
+        "fields": [
+          {
+            "id": "field1",
+            "label": "Address",
+            "type": "text",
+            "defaultValue": "47 Kensington Gardens, London, W8 4PT, UK"
+          },
+          {
+            "id": "field2",
+            "label": "Property Type",
+            "type": "text",
+            "defaultValue": "Detached Villa"
+          },
+          {
+            "id": "field3",
+            "label": "Listing Price",
+            "type": "text",
+            "defaultValue": "$1,250,000"
+          }
+        ]
+      }
+    },
+    "buttons": {
+      "send": "Send for Signature (Template)",
+      "preview": "Preview Mandate",
+      "embed": "View & Sign (Embedded Template)"
+    },
+    "email": {
+      "subject": "Selling Mandate Agreement",
+      "message": "Please review and sign the Selling Mandate. Let us know if you have questions."
+    },
+    "documentTemplate": "selling-mandate",
+    "documentContent": "# NON-DISCLOSURE AGREEMENT\n\n**Effective Date:** [date|req|signer1]\n\n**Between:** {{signerName1}} ({{signerEmail1}}) and the Receiving Party\n\n---\n\n## 1. PURPOSE\n\nThe parties wish to explore a business opportunity and may disclose confidential information that must be protected against unauthorized disclosure.\n\n## 2. CONFIDENTIAL INFORMATION\n\n\"Confidential Information\" means any information disclosed by either party, including business plans, technical data, trade secrets, customer lists, and any information designated as \"Confidential\".\n\n## 3. OBLIGATIONS\n\nThe Receiving Party agrees to hold all Confidential Information in strict confidence, not disclose it to third parties without prior written consent, and use it solely for evaluating the business relationship.\n\n## 4. ACKNOWLEDGMENT\n\nI acknowledge that I have read and understand this Agreement: [check|req|signer1]\n\nInitial here: [initial|req|signer1]\n\n<div style=\"page-break-after: always;\"></div>\n\n# NON-DISCLOSURE AGREEMENT (Page 2)\n\n## 5. EXCLUSIONS\n\nObligations do not apply to information that was publicly available, rightfully possessed prior to disclosure, or independently developed.\n\n## 6. TERM\n\nThis Agreement continues for three (3) years. Confidentiality obligations survive for five (5) years from last disclosure.\n\n## 7. GOVERNING LAW\n\nGoverned by the laws of England and Wales.\n\n---\n\n## SIGNATURE\n\n**Signature:** [sig|req|signer1]\n\n**Name:** {{signerName1}}\n\n**Date:** [date|req|signer1]\n"
+  }
+}

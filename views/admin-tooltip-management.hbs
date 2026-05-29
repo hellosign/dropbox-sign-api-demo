@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Admin - Tooltip Management</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/toast.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-title {
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .admin-title img {
+      height: 80px;
+      width: auto;
+    }
+
+    .admin-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: #5e5e5e;
+    }
+
+    .back-link {
+      padding: 8px 16px;
+      background: #0061FF;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .admin-nav {
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+    }
+
+    .admin-nav a {
+      padding: 12px 24px;
+      color: #64748b;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .admin-nav a:hover {
+      color: #1e293b;
+    }
+
+    .admin-nav a.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+
+    .admin-container {
+      padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .section-card {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+      margin: 0 0 16px 0;
+      color: #1a1a1a;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-field label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+      font-size: 14px;
+    }
+
+    .form-field input[type="checkbox"] {
+      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .form-field input[type="text"],
+    .form-field input[type="number"],
+    .form-field select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-field .help-text {
+      margin: 6px 0 0 0;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #0061FF;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0052e0;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-warning {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #d97706;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      border-bottom: 2px solid #e1e4e8;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    th.center {
+      text-align: center;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e1e4e8;
+      vertical-align: top;
+    }
+
+    td.center {
+      text-align: center;
+    }
+
+    tr:hover {
+      background: #f8fafc;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 8px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    select {
+      padding: 6px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .priority-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: white;
+    }
+
+    .priority-1 {
+      background: #dc2626;
+    }
+
+    .priority-2 {
+      background: #f59e0b;
+    }
+
+    .priority-3 {
+      background: #64748b;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #64748b;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="admin-header">
+    <h1 class="admin-title"><img src="/admin_panel_fit.png" alt="Dropbox Sign Demo Admin Panel"></h1>
+    <div class="admin-user">
+      <span>Signed in as: <strong>{{userEmail}}</strong></span>
+      <a href="/" class="back-link">← Back to Portal</a>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <a href="/admin">Users & System</a>
+    <a href="/admin/translations">Translation Management</a>
+    <a href="/admin/tooltip-management" class="active">Tooltip Management</a>
+    <a href="/admin/access-control">Access Control</a>
+    <a href="/admin/security">Security Dashboard</a>
+    <a href="/admin/theme-management">Theme Management</a>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+
+    <!-- Global Settings Section -->
+    <div class="section-card">
+      <h3 class="section-title">Global Tooltip Settings</h3>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label>
+            <input type="checkbox" id="globalTooltipEnabled" />
+            Enable Tooltips Globally
+          </label>
+          <p class="help-text">Master on/off switch for all tooltips</p>
+        </div>
+
+        <div class="form-field">
+          <label>Default Position:</label>
+          <select id="defaultPosition">
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+          </select>
+          <p class="help-text">Where tooltips appear by default</p>
+        </div>
+
+        <div class="form-field">
+          <label>Show Delay (ms):</label>
+          <input type="number" id="showDelay" min="0" max="5000" step="100" value="500" />
+          <p class="help-text">Wait time before showing tooltip</p>
+        </div>
+
+        <div class="form-field">
+          <label>Hide Delay (ms):</label>
+          <input type="number" id="hideDelay" min="0" max="2000" step="100" value="200" />
+          <p class="help-text">Wait time before hiding tooltip</p>
+        </div>
+      </div>
+
+      <button id="saveGlobalSettingsBtn" class="btn btn-primary">Save Global Settings</button>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="section-card">
+      <h3 class="section-title">Filter Tooltips</h3>
+
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Search:</label>
+          <input type="text" id="searchTooltips" placeholder="Search by field name or text..." />
+        </div>
+
+        <div class="form-field">
+          <label>View/Location:</label>
+          <select id="filterView">
+            <option value="">All Views</option>
+            <option value="index/tab-mandate">Tab 1: New Mandate</option>
+            <option value="index/tab-editor">Tab 2: Document Editor</option>
+            <option value="index/tab-activity">Tab 3: Signature Status</option>
+            <option value="index/tab-templates">Tab 4: Templates</option>
+            <option value="index/tab-api-apps">Tab 5: API Apps</option>
+            <option value="index/tab-logs">Tab 6: API Logs</option>
+            <option value="index/tab-team">Tab 7: Team</option>
+            <option value="index/tab-settings">Tab 8: Settings</option>
+            <option value="admin">Admin Panel</option>
+            <option value="login">Login Page</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Priority:</label>
+          <select id="filterPriority">
+            <option value="">All Priorities</option>
+            <option value="1">Priority 1 (Critical)</option>
+            <option value="2">Priority 2 (High)</option>
+            <option value="3">Priority 3 (Medium)</option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label>Status:</label>
+          <select id="filterStatus">
+            <option value="">All</option>
+            <option value="enabled">Enabled Only</option>
+            <option value="disabled">Disabled Only</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tooltips Table -->
+    <div class="section-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 class="section-title" style="margin: 0;">Tooltip Definitions (<span id="tooltipCount">0</span>)</h3>
+
+        <div class="btn-group">
+          <button id="enableAllVisibleBtn" class="btn btn-success">Enable All Visible</button>
+          <button id="disableAllVisibleBtn" class="btn btn-warning">Disable All Visible</button>
+          <button id="resetToDefaultsBtn" class="btn btn-danger">Reset to Defaults</button>
+        </div>
+      </div>
+
+      <div class="table-container" id="tooltipsTableContainer">
+        <p class="loading">Loading tooltips...</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let allTooltips = {};
+    let filteredTooltips = {};
+
+    // Load tooltip configuration
+    async function loadTooltips() {
+      try {
+        const res = await fetch('/admin/api/tooltips');
+        const data = await res.json();
+
+        if (!data.success) throw new Error(data.error || 'Failed to load tooltips');
+
+        allTooltips = data.config.tooltips;
+
+        // Load global settings
+        document.getElementById('globalTooltipEnabled').checked = data.config.globalSettings.enabled;
+        document.getElementById('defaultPosition').value = data.config.globalSettings.defaultPosition;
+        document.getElementById('showDelay').value = data.config.globalSettings.showDelay;
+        document.getElementById('hideDelay').value = data.config.globalSettings.hideDelay;
+
+        // Apply filters and render
+        applyFilters();
+      } catch (err) {
+        console.error('Failed to load tooltips:', err);
+        showErrorToast('Failed to load tooltips: ' + err.message);
+        document.getElementById('tooltipsTableContainer').innerHTML = '<p class="empty-state">Error loading tooltips</p>';
+      }
+    }
+
+    // Apply filters
+    function applyFilters() {
+      const searchTerm = document.getElementById('searchTooltips').value.toLowerCase();
+      const viewFilter = document.getElementById('filterView').value;
+      const priorityFilter = document.getElementById('filterPriority').value;
+      const statusFilter = document.getElementById('filterStatus').value;
+
+      filteredTooltips = {};
+
+      for (const [id, tooltip] of Object.entries(allTooltips)) {
+        // Search filter
+        if (searchTerm &&
+            !tooltip.fieldName.toLowerCase().includes(searchTerm) &&
+            !tooltip.text.toLowerCase().includes(searchTerm) &&
+            !id.toLowerCase().includes(searchTerm)) {
+          continue;
+        }
+
+        // View filter
+        if (viewFilter && !tooltip.viewLocation.startsWith(viewFilter)) {
+          continue;
+        }
+
+        // Priority filter
+        if (priorityFilter && tooltip.priority !== parseInt(priorityFilter)) {
+          continue;
+        }
+
+        // Status filter
+        if (statusFilter === 'enabled' && !tooltip.enabled) {
+          continue;
+        }
+        if (statusFilter === 'disabled' && tooltip.enabled) {
+          continue;
+        }
+
+        filteredTooltips[id] = tooltip;
+      }
+
+      renderTooltipsTable();
+    }
+
+    // Render tooltips table
+    function renderTooltipsTable() {
+      const container = document.getElementById('tooltipsTableContainer');
+      const countEl = document.getElementById('tooltipCount');
+
+      const tooltipArray = Object.entries(filteredTooltips);
+      countEl.textContent = tooltipArray.length;
+
+      if (tooltipArray.length === 0) {
+        container.innerHTML = '<p class="empty-state">No tooltips match your filters</p>';
+        return;
+      }
+
+      let html = `
+        <table>
+          <thead>
+            <tr>
+              <th>Field Name</th>
+              <th>Location</th>
+              <th style="width: 30%;">Tooltip Text</th>
+              <th style="width: 20%;">Documentation URL</th>
+              <th class="center">Position</th>
+              <th class="center">Priority</th>
+              <th class="center">Enabled</th>
+              <th class="center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      for (const [id, tooltip] of tooltipArray) {
+        const priorityClass = `priority-${tooltip.priority}`;
+        const hasUrl = tooltip.sourceUrl && tooltip.sourceUrl.trim() !== '';
+
+        html += `
+          <tr data-tooltip-id="${escapeHtml(id)}">
+            <td style="font-weight: 500; color: #1a1a1a;">${escapeHtml(tooltip.fieldName)}</td>
+            <td style="color: #64748b; font-size: 13px;">${escapeHtml(tooltip.viewLocation)}</td>
+            <td>
+              <textarea class="tooltip-text-input" data-tooltip-id="${escapeHtml(id)}">${escapeHtml(tooltip.text)}</textarea>
+            </td>
+            <td>
+              <input type="url" class="tooltip-url-input" data-tooltip-id="${escapeHtml(id)}"
+                placeholder="https://docs.example.com"
+                value="${escapeHtml(tooltip.sourceUrl || '')}"
+                style="width: 100%; padding: 6px 8px; border: 1px solid ${hasUrl ? '#10b981' : '#cbd5e1'}; border-radius: 4px; font-size: 13px;" />
+              ${hasUrl ? '<small style="color: #10b981; font-size: 11px;">✓ Link active</small>' : '<small style="color: #94a3b8; font-size: 11px;">Optional</small>'}
+            </td>
+            <td class="center">
+              <select class="tooltip-position-select" data-tooltip-id="${escapeHtml(id)}">
+                <option value="top" ${tooltip.position === 'top' ? 'selected' : ''}>Top</option>
+                <option value="bottom" ${tooltip.position === 'bottom' ? 'selected' : ''}>Bottom</option>
+                <option value="left" ${tooltip.position === 'left' ? 'selected' : ''}>Left</option>
+                <option value="right" ${tooltip.position === 'right' ? 'selected' : ''}>Right</option>
+              </select>
+            </td>
+            <td class="center">
+              <span class="priority-badge ${priorityClass}">${tooltip.priority}</span>
+            </td>
+            <td class="center">
+              <input type="checkbox" class="tooltip-enabled-checkbox" data-tooltip-id="${escapeHtml(id)}"
+                ${tooltip.enabled ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;" />
+            </td>
+            <td class="center">
+              <button class="save-tooltip-btn btn btn-primary" data-tooltip-id="${escapeHtml(id)}">
+                Save
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+
+      html += `
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = html;
+
+      // Attach event listeners
+      attachTooltipEventListeners();
+    }
+
+    // Attach event listeners to tooltip rows
+    function attachTooltipEventListeners() {
+      document.querySelectorAll('.save-tooltip-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const tooltipId = e.target.getAttribute('data-tooltip-id');
+          await saveTooltip(tooltipId);
+        });
+      });
+    }
+
+    // Save single tooltip
+    async function saveTooltip(tooltipId) {
+      const textInput = document.querySelector(`.tooltip-text-input[data-tooltip-id="${tooltipId}"]`);
+      const urlInput = document.querySelector(`.tooltip-url-input[data-tooltip-id="${tooltipId}"]`);
+      const positionSelect = document.querySelector(`.tooltip-position-select[data-tooltip-id="${tooltipId}"]`);
+      const enabledCheckbox = document.querySelector(`.tooltip-enabled-checkbox[data-tooltip-id="${tooltipId}"]`);
+
+      const updates = {
+        text: textInput.value,
+        sourceUrl: urlInput.value.trim(),
+        position: positionSelect.value,
+        enabled: enabledCheckbox.checked
+      };
+
+      try {
+        const res = await fetch(`/admin/api/tooltips/${tooltipId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates)
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to save tooltip');
+
+        // Update local state
+        allTooltips[tooltipId] = data.tooltip;
+
+        showSuccessToast(`Tooltip "${data.tooltip.fieldName}" saved`);
+
+        // Re-render to update URL indicator color
+        applyFilters();
+      } catch (err) {
+        console.error('Failed to save tooltip:', err);
+        showErrorToast('Failed to save tooltip: ' + err.message);
+      }
+    }
+
+    // Save global settings
+    document.getElementById('saveGlobalSettingsBtn').addEventListener('click', async () => {
+      const settings = {
+        enabled: document.getElementById('globalTooltipEnabled').checked,
+        defaultPosition: document.getElementById('defaultPosition').value,
+        showDelay: parseInt(document.getElementById('showDelay').value),
+        hideDelay: parseInt(document.getElementById('hideDelay').value)
+      };
+
+      try {
+        const res = await fetch('/admin/api/tooltips/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settings)
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to save settings');
+
+        showSuccessToast('Global tooltip settings saved');
+      } catch (err) {
+        console.error('Failed to save global settings:', err);
+        showErrorToast('Failed to save settings: ' + err.message);
+      }
+    });
+
+    // Enable all visible tooltips
+    document.getElementById('enableAllVisibleBtn').addEventListener('click', async () => {
+      const tooltipIds = Object.keys(filteredTooltips);
+
+      if (tooltipIds.length === 0) {
+        showWarningToast('No tooltips to enable');
+        return;
+      }
+
+      if (!confirm(`Enable ${tooltipIds.length} visible tooltip(s)?`)) return;
+
+      try {
+        const res = await fetch('/admin/api/tooltips/bulk', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tooltipIds,
+            updates: { enabled: true }
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to enable tooltips');
+
+        // Reload tooltips
+        await loadTooltips();
+
+        showSuccessToast(`Enabled ${data.updated} tooltip(s)`);
+      } catch (err) {
+        console.error('Failed to enable tooltips:', err);
+        showErrorToast('Failed to enable tooltips: ' + err.message);
+      }
+    });
+
+    // Disable all visible tooltips
+    document.getElementById('disableAllVisibleBtn').addEventListener('click', async () => {
+      const tooltipIds = Object.keys(filteredTooltips);
+
+      if (tooltipIds.length === 0) {
+        showWarningToast('No tooltips to disable');
+        return;
+      }
+
+      if (!confirm(`Disable ${tooltipIds.length} visible tooltip(s)?`)) return;
+
+      try {
+        const res = await fetch('/admin/api/tooltips/bulk', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tooltipIds,
+            updates: { enabled: false }
+          })
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to disable tooltips');
+
+        // Reload tooltips
+        await loadTooltips();
+
+        showSuccessToast(`Disabled ${data.updated} tooltip(s)`);
+      } catch (err) {
+        console.error('Failed to disable tooltips:', err);
+        showErrorToast('Failed to disable tooltips: ' + err.message);
+      }
+    });
+
+    // Reset to defaults
+    document.getElementById('resetToDefaultsBtn').addEventListener('click', async () => {
+      if (!confirm('Reset ALL tooltips to default values? This cannot be undone!')) return;
+
+      try {
+        const res = await fetch('/admin/api/tooltips/reset', {
+          method: 'POST'
+        });
+
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Failed to reset tooltips');
+
+        // Reload tooltips
+        await loadTooltips();
+
+        showSuccessToast('All tooltips reset to defaults');
+      } catch (err) {
+        console.error('Failed to reset tooltips:', err);
+        showErrorToast('Failed to reset tooltips: ' + err.message);
+      }
+    });
+
+    // Filter event listeners
+    document.getElementById('searchTooltips').addEventListener('input', applyFilters);
+    document.getElementById('filterView').addEventListener('change', applyFilters);
+    document.getElementById('filterPriority').addEventListener('change', applyFilters);
+    document.getElementById('filterStatus').addEventListener('change', applyFilters);
+
+    // Utility: Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Initialize on page load
+    loadTooltips();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Admin - Users & System</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/error-logger.js"></script>
+  <script src="/console-logger.js"></script>
+  <script src="/toast.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-title {
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .admin-title img {
+      height: 80px;
+      width: auto;
+    }
+
+    .admin-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: #5e5e5e;
+    }
+
+    .back-link {
+      padding: 8px 16px;
+      background: #0061FF;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .back-link:hover {
+      background: #0047B3;
+    }
+
+    .admin-nav {
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+    }
+
+    .admin-nav a {
+      padding: 12px 24px;
+      color: #64748b;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .admin-nav a:hover {
+      color: #1e293b;
+    }
+
+    .admin-nav a.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e1e4e8;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #5e5e5e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+    }
+
+    .stat-subtitle {
+      font-size: 13px;
+      color: #8c8c8c;
+      margin-top: 8px;
+    }
+
+    .users-section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e1e4e8;
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e1e4e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+    }
+
+    .refresh-button {
+      padding: 8px 16px;
+      background: #f5f7fa;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a1a1a;
+      transition: all 0.2s;
+    }
+
+    .refresh-button:hover {
+      background: #e1e4e8;
+    }
+
+    .search-box {
+      padding: 12px 24px;
+      background: #f5f7fa;
+      border-bottom: 1px solid #e1e4e8;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #0061FF;
+      box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1);
+    }
+
+    .users-table-container {
+      overflow-x: auto;
+    }
+
+    .users-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .users-table thead {
+      background: #f5f7fa;
+      border-bottom: 2px solid #e1e4e8;
+    }
+
+    .users-table th {
+      text-align: left;
+      padding: 12px 24px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #5e5e5e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .users-table td {
+      padding: 16px 24px;
+      border-bottom: 1px solid #e1e4e8;
+      font-size: 14px;
+      color: #1a1a1a;
+    }
+
+    .users-table tbody tr:hover {
+      background: #f5f7fa;
+    }
+
+    .user-email {
+      font-weight: 500;
+      color: #0061FF;
+    }
+
+    .user-account-id {
+      font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+      font-size: 12px;
+      color: #8c8c8c;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .role-admin {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .role-user {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+
+    .action-button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .action-logout {
+      background: #fee;
+      color: #c00;
+    }
+
+    .action-logout:hover {
+      background: #fcc;
+    }
+
+    .action-view {
+      background: #e0e7ff;
+      color: #4338ca;
+      margin-right: 8px;
+    }
+
+    .action-view:hover {
+      background: #c7d2fe;
+    }
+
+    .action-delete {
+      background: #dc2626;
+      color: white;
+    }
+
+    .action-delete:hover {
+      background: #b91c1c;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #8c8c8c;
+      font-size: 14px;
+    }
+
+    .error {
+      background: #fee;
+      color: #c00;
+      padding: 16px 24px;
+      border-left: 4px solid #c00;
+      margin: 24px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 24px;
+      color: #8c8c8c;
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      max-width: 800px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid #e1e4e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #8c8c8c;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+    }
+
+    .modal-close:hover {
+      background: #f5f7fa;
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .detail-section {
+      margin-bottom: 24px;
+    }
+
+    .detail-section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #5e5e5e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .detail-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px;
+      background: #f5f7fa;
+      border-radius: 6px;
+    }
+
+    .detail-label {
+      font-weight: 500;
+      color: #5e5e5e;
+      font-size: 14px;
+    }
+
+    .detail-value {
+      font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+      font-size: 13px;
+      color: #1a1a1a;
+      text-align: right;
+    }
+
+    .code-block {
+      background: #1a1a1a;
+      color: #00ff00;
+      padding: 16px;
+      border-radius: 6px;
+      font-family: "SF Mono", Monaco, "Cascadia Code", monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .auto-refresh-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #8c8c8c;
+      margin-left: 16px;
+    }
+
+    .refresh-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-header">
+    <h1 class="admin-title"><img src="/admin_panel_fit.png" alt="Dropbox Sign Demo Admin Panel"></h1>
+    <div class="admin-user">
+      <span>Signed in as: <strong>{{userEmail}}</strong></span>
+      <a href="/" class="back-link">← Back to Portal</a>
+    </div>
+  </div>
+
+  <nav class="admin-nav">
+    <a href="/admin" class="active">Users & System</a>
+    <a href="/admin/translations">Translation Management</a>
+    <a href="/admin/tooltip-management">Tooltip Management</a>
+    <a href="/admin/access-control">Access Control</a>
+    <a href="/admin/security">Security Dashboard</a>
+    <a href="/admin/theme-management">Theme Management</a>
+  </nav>
+
+  <div class="admin-container">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value" id="stat-total-users">-</div>
+        <div class="stat-subtitle"><span id="stat-active-users">-</span> online · <span id="stat-inactive-users">-</span> offline · <span id="stat-active-sessions">-</span> sessions</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Signature Requests</div>
+        <div class="stat-value" id="stat-requests">-</div>
+        <div class="stat-subtitle">Total in all sessions</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Webhook Events</div>
+        <div class="stat-value" id="stat-webhooks">-</div>
+        <div class="stat-subtitle">Total received</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Redis Memory</div>
+        <div class="stat-value" id="stat-memory" style="font-size: 28px;">-</div>
+        <div class="stat-subtitle" id="stat-env">-</div>
+      </div>
+    </div>
+
+    <!-- Redis Memory Breakdown -->
+    <div class="redis-section" style="margin: 24px 0;">
+      <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px;">Redis Memory Breakdown</h3>
+      <div id="redis-breakdown" style="background: #f8fafc; border-radius: 8px; padding: 16px;">
+        <p style="color: #64748b;">Loading...</p>
+      </div>
+    </div>
+
+    <!-- Console Logging Settings -->
+    <div class="console-logging-section" style="margin: 24px 0; background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+      <h3 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px;">Browser Console Logging</h3>
+
+      <div style="margin-bottom: 16px;">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="consoleLoggingEnabled" data-tooltip="consoleLoggingEnabled" style="margin-right: 8px; width: 18px; height: 18px; cursor: pointer;" />
+          <span style="font-weight: 500; color: #1e293b;">Enable Browser Console Streaming</span>
+        </label>
+        <p style="margin: 8px 0 0 26px; font-size: 14px; color: #64748b; line-height: 1.5;">
+          When enabled, all browser console output (log, warn, info, error) is streamed to server log files.
+          This helps troubleshoot client-side issues. May impact performance with heavy logging.
+        </p>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+          <div>
+            <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #1e293b;">
+              Max Log File Size (MB):
+            </label>
+            <input type="number" id="maxLogFileSize" data-tooltip="maxLogFileSize" min="1" max="100" value="10"
+              style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;" />
+            <p style="margin: 6px 0 0 0; font-size: 12px; color: #64748b;">
+              When log file exceeds this size, it will be rotated (default: 10MB)
+            </p>
+          </div>
+
+          <div>
+            <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #1e293b;">
+              Keep Rotated Files:
+            </label>
+            <input type="number" id="maxRotatedFiles" data-tooltip="maxRotatedFiles" min="1" max="10" value="3"
+              style="width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;" />
+            <p style="margin: 6px 0 0 0; font-size: 12px; color: #64748b;">
+              Number of rotated log files to keep (default: 3)
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <button id="saveConsoleLoggingBtn"
+            style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">
+            Save Settings
+          </button>
+          <button id="clearLogsBtn"
+            style="padding: 10px 20px; background: #dc2626; color: white; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; font-size: 14px;">
+            Clear Logs
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="users-section">
+      <div class="section-header">
+        <h2 class="section-title">Active Users</h2>
+        <div style="display: flex; align-items: center;">
+          <span class="auto-refresh-indicator">
+            <span class="refresh-dot"></span>
+            Auto-refresh: 30s
+          </span>
+          <button class="refresh-button">🔄 Refresh Now</button>
+        </div>
+      </div>
+
+      <div class="search-box">
+        <input
+          type="text"
+          class="search-input"
+          id="search-input"
+          placeholder="Search by email or account ID..."
+          oninput="filterUsers()"
+        >
+      </div>
+
+      <div id="users-content">
+        <div class="loading">Loading users...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Detail Modal -->
+  <div id="user-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">User Details</h3>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <div class="loading">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allUsers = [];
+    let autoRefreshInterval = null;
+
+    // Load statistics
+    async function loadStats() {
+      try {
+        const response = await fetch('/admin/api/stats');
+        const data = await response.json();
+
+        if (data.success) {
+          document.getElementById('stat-total-users').textContent = data.stats.totalUsers;
+          document.getElementById('stat-active-users').textContent = data.stats.activeUsers;
+          document.getElementById('stat-inactive-users').textContent = data.stats.inactiveUsers;
+          document.getElementById('stat-active-sessions').textContent = data.stats.totalActiveSessions;
+          document.getElementById('stat-requests').textContent = data.stats.totalSignatureRequests;
+          document.getElementById('stat-webhooks').textContent = data.stats.totalWebhookEvents;
+          document.getElementById('stat-memory').textContent = data.stats.redisMemory;
+
+          // Populate Redis breakdown
+          if (data.stats.redisBreakdown) {
+            const breakdown = data.stats.redisBreakdown;
+            const entries = Object.entries(breakdown).sort((a, b) => b[1].size - a[1].size);
+
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">';
+            entries.forEach(([label, info]) => {
+              html += `
+                <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                  <div style="font-weight: 500; color: #1e293b; margin-bottom: 4px;">${label}</div>
+                  <div style="font-size: 20px; font-weight: 600; color: #3b82f6;">${info.sizeHuman}</div>
+                  <div style="font-size: 12px; color: #64748b;">${info.count} keys</div>
+                </div>
+              `;
+            });
+            html += '</div>';
+
+            document.getElementById('redis-breakdown').innerHTML = html;
+          }
+          document.getElementById('stat-env').textContent = data.stats.environment;
+        }
+      } catch (err) {
+        console.error('Failed to load stats:', err);
+      }
+    }
+
+    // Load users
+    async function loadUsers() {
+      try {
+        const response = await fetch('/admin/api/users');
+        const data = await response.json();
+
+        if (!data.success) {
+          showError(data.error);
+          return;
+        }
+
+        allUsers = data.users;
+        renderUsers(allUsers);
+        loadStats();
+      } catch (err) {
+        showError('Failed to load users: ' + err.message);
+      }
+    }
+
+    // Render users table
+    function renderUsers(users) {
+      const container = document.getElementById('users-content');
+
+      if (users.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">👥</div>
+            <div>No active users found</div>
+          </div>
+        `;
+        return;
+      }
+
+      // Flatten users into rows (one row per session)
+      const rows = [];
+      users.forEach(user => {
+        if (user.sessions && user.sessions.length > 0) {
+          // Create one row for EACH session
+          user.sessions.forEach((session, index) => {
+            const isFirstSession = index === 0;
+
+            rows.push(`
+              <tr class="${user.isActive ? 'active-user' : 'inactive-user'}" data-user-email="${escapeHtml(user.email)}">
+                <td>
+                  ${isFirstSession ? `
+                    <div class="user-email">${escapeHtml(user.email)}</div>
+                    <span style="font-size: 11px; color: #10b981; font-weight: 500;">● ONLINE</span>
+                  ` : `
+                    <div style="color:#94a3b8; padding-left: 16px;">↳ ${escapeHtml(user.email)}</div>
+                  `}
+                </td>
+                <td>${isFirstSession ? escapeHtml(user.accountId) : ''}</td>
+                <td>
+                  ${isFirstSession ? `
+                    <span class="role-badge role-${user.isPortalAdmin ? 'admin' : 'user'}">
+                      ${user.isPortalAdmin ? 'Admin' : 'User'}
+                    </span>
+                  ` : ''}
+                </td>
+                <td style="font-family: monospace; font-size: 12px; color: #64748b;" title="${escapeHtml(session.sessionId)}" data-tooltip="sessionId">
+                  ${escapeHtml(session.sessionId.substring(0, 8))}...
+                </td>
+                <td data-tooltip="lastActivity">${session.lastActivity ? formatDate(session.lastActivity) : '<span style="color: #8c8c8c;">N/A</span>'}</td>
+                <td>
+                  ${session.signatureRequestsCount || 0} requests<br>
+                  ${session.webhookEventsCount || 0} webhooks
+                </td>
+                <td>
+                  ${isFirstSession ? `
+                    <button class="action-button action-view" data-account-id="${escapeHtml(user.accountId)}">
+                      View
+                    </button>
+                  ` : ''}
+                  <button class="action-button action-logout" data-session-id="${escapeHtml(session.sessionId)}" data-email="${escapeHtml(user.email)}" data-tooltip="logoutUserBtn">
+                    Logout
+                  </button>
+                  ${isFirstSession ? `
+                    <button class="action-button action-delete" data-account-id="${escapeHtml(user.accountId)}" data-email="${escapeHtml(user.email)}" data-tooltip="deleteUserBtn" style="background: #dc2626; color: white;">
+                      Delete
+                    </button>
+                  ` : ''}
+                </td>
+              </tr>
+            `);
+          });
+        } else {
+          // No active sessions - show inactive user
+          rows.push(`
+            <tr class="inactive-user" style="opacity: 0.6; background: #f9fafb;">
+              <td>
+                <div class="user-email">${escapeHtml(user.email)}</div>
+                <span style="font-size: 11px; color: #8c8c8c; font-weight: 500;">● OFFLINE</span>
+              </td>
+              <td>${escapeHtml(user.accountId)}</td>
+              <td>
+                <span class="role-badge role-${user.isPortalAdmin ? 'admin' : 'user'}">
+                  ${user.isPortalAdmin ? 'Admin' : 'User'}
+                </span>
+              </td>
+              <td colspan="3" style="color:#94a3b8;">No active sessions</td>
+              <td>
+                <button class="action-button action-view" data-account-id="${escapeHtml(user.accountId)}">
+                  View
+                </button>
+                <button class="action-button action-delete" data-account-id="${escapeHtml(user.accountId)}" data-email="${escapeHtml(user.email)}" style="background: #dc2626; color: white;">
+                  Delete
+                </button>
+              </td>
+            </tr>
+          `);
+        }
+      });
+
+      const html = `
+        <div class="users-table-container">
+          <table class="users-table admin-users-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Account ID</th>
+                <th>Role</th>
+                <th>Session ID</th>
+                <th>Last Activity</th>
+                <th>Data</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // Filter users by search
+    function filterUsers() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const filtered = allUsers.filter(user =>
+        user.email.toLowerCase().includes(query) ||
+        user.accountId.toLowerCase().includes(query)
+      );
+      renderUsers(filtered);
+    }
+
+    // View user details
+    async function viewUser(accountId) {
+      const modal = document.getElementById('user-modal');
+      const body = document.getElementById('modal-body');
+
+      modal.classList.add('active');
+      body.innerHTML = '<div class="loading">Loading user details...</div>';
+
+      try {
+        const response = await fetch(`/admin/api/users/${accountId}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          body.innerHTML = `<div class="error">${data.error}</div>`;
+          return;
+        }
+
+        const session = data.session;
+        const userData = data.data;
+
+        body.innerHTML = `
+          ${session ? `
+            <div class="detail-section">
+              <div class="detail-section-title">Session Information</div>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">Email</span>
+                  <span class="detail-value">${escapeHtml(session.email)}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Session ID</span>
+                  <span class="detail-value">${escapeHtml(session.sessionId)}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Role Code</span>
+                  <span class="detail-value">${escapeHtml(session.roleCode)}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Last Activity</span>
+                  <span class="detail-value">${formatDate(session.lastActivity)}</span>
+                </div>
+              </div>
+            </div>
+          ` : '<div class="error">No active session found</div>'}
+
+          <div class="detail-section">
+            <div class="detail-section-title">User Data (Redis)</div>
+            ${Object.keys(userData).length > 0 ? `
+              <div class="code-block">${JSON.stringify(userData, null, 2)}</div>
+            ` : '<div style="color: #8c8c8c; font-style: italic;">No additional data stored</div>'}
+          </div>
+        `;
+      } catch (err) {
+        body.innerHTML = `<div class="error">Failed to load user details: ${err.message}</div>`;
+      }
+    }
+
+    // Logout user
+    async function logoutUser(sessionId, email) {
+      console.log('[logoutUser] Called with sessionId:', sessionId, 'email:', email);
+
+      try {
+        console.log('[logoutUser] Sending DELETE request to /admin/api/sessions/' + sessionId);
+        const response = await fetch(`/admin/api/sessions/${sessionId}`, {
+          method: 'DELETE'
+        });
+        console.log('[logoutUser] Response status:', response.status);
+        const data = await response.json();
+        console.log('[logoutUser] Response data:', data);
+
+        if (data.success) {
+          // Only reload users, no toast on success
+          loadUsers();
+        } else {
+          // Show toast only on error
+          showErrorToast('Error: ' + data.error);
+        }
+      } catch (err) {
+        console.error('[logoutUser] Error:', err);
+        showErrorToast('Failed to logout user: ' + err.message);
+      }
+    }
+
+    // Delete user completely
+    async function deleteUserCompletely(accountId, email) {
+      console.log('[deleteUserCompletely] Called with accountId:', accountId, 'email:', email);
+      const confirmation = prompt(
+        `⚠️ WARNING: You are about to PERMANENTLY DELETE all data for ${email}.\n\n` +
+        `This will remove:\n` +
+        `  • All active sessions\n` +
+        `  • All user data (templates, themes, settings, etc.)\n` +
+        `  • This action CANNOT be undone\n\n` +
+        `Type "DELETE" to confirm:`
+      );
+
+      if (confirmation !== 'DELETE') {
+        if (confirmation !== null) {
+          showWarningToast('Deletion cancelled - confirmation text did not match.');
+        }
+        console.log('[deleteUserCompletely] User cancelled or wrong confirmation');
+        return;
+      }
+
+      try {
+        console.log('[deleteUserCompletely] Sending DELETE request to /admin/api/users/' + accountId);
+        const response = await fetch(`/admin/api/users/${accountId}`, {
+          method: 'DELETE'
+        });
+        console.log('[deleteUserCompletely] Response status:', response.status);
+        const data = await response.json();
+        console.log('[deleteUserCompletely] Response data:', data);
+
+        if (data.success) {
+          showSuccessToast(
+            `✓ User deleted successfully\n\n` +
+            `Email: ${data.details.email}\n` +
+            `Sessions deleted: ${data.details.sessionsDeleted}\n` +
+            `Data keys deleted: ${data.details.dataKeysDeleted}\n` +
+            `Total keys removed: ${data.details.totalKeysDeleted}`,
+            8000
+          );
+          closeModal();
+          loadUsers();
+        } else {
+          showErrorToast('Error: ' + data.error);
+        }
+      } catch (err) {
+        showErrorToast('Failed to delete user: ' + err.message);
+      }
+    }
+
+    // Close modal
+    function closeModal() {
+      document.getElementById('user-modal').classList.remove('active');
+    }
+
+    // Show error
+    function showError(message) {
+      document.getElementById('users-content').innerHTML = `
+        <div class="error">${escapeHtml(message)}</div>
+      `;
+    }
+
+    // Utility functions
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours}h ago`;
+
+      const diffDays = Math.floor(diffHours / 24);
+      if (diffDays < 7) return `${diffDays}d ago`;
+
+      return date.toLocaleDateString();
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('user-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'user-modal') {
+        closeModal();
+      }
+    });
+
+    // Event delegation for dynamically created buttons (delegate to document)
+    document.addEventListener('click', (e) => {
+      const button = e.target.closest('button');
+      if (!button) return;
+
+      // Handle refresh button
+      if (button.classList.contains('refresh-button')) {
+        console.log('[Event Delegation] Refresh button clicked');
+        loadUsers();
+        return;
+      }
+
+      // Handle modal close button
+      if (button.classList.contains('modal-close')) {
+        console.log('[Event Delegation] Modal close button clicked');
+        closeModal();
+        return;
+      }
+
+      // Handle view button
+      if (button.classList.contains('action-view')) {
+        const accountId = button.getAttribute('data-account-id');
+        console.log('[Event Delegation] View button clicked:', accountId);
+        if (accountId) {
+          viewUser(accountId);
+        }
+        return;
+      }
+
+      // Handle logout button
+      if (button.classList.contains('action-logout')) {
+        const sessionId = button.getAttribute('data-session-id');
+        const email = button.getAttribute('data-email');
+        console.log('[Event Delegation] Logout button clicked:', sessionId, email);
+        if (sessionId && email) {
+          logoutUser(sessionId, email);
+        }
+        return;
+      }
+
+      // Handle delete button
+      if (button.classList.contains('action-delete')) {
+        const accountId = button.getAttribute('data-account-id');
+        const email = button.getAttribute('data-email');
+        console.log('[Event Delegation] Delete button clicked:', accountId, email);
+        if (accountId && email) {
+          deleteUserCompletely(accountId, email);
+        }
+        return;
+      }
+    });
+
+    // Expose functions globally for inline onclick handlers (fallback)
+    window.viewUser = viewUser;
+    window.logoutUser = logoutUser;
+    window.deleteUserCompletely = deleteUserCompletely;
+    window.closeModal = closeModal;
+
+    // Initialize
+    loadUsers();
+
+    // Auto-refresh every 30 seconds
+    autoRefreshInterval = setInterval(loadUsers, 30000);
+
+    // Console Logging Settings
+    async function loadConsoleLoggingSettings() {
+      try {
+        const res = await fetch('/admin/api/console-logging');
+        const data = await res.json();
+        document.getElementById('consoleLoggingEnabled').checked = data.enabled;
+        document.getElementById('maxLogFileSize').value = data.maxSizeMB;
+        document.getElementById('maxRotatedFiles').value = data.maxFiles;
+      } catch (err) {
+        console.error('Failed to load console logging settings:', err);
+      }
+    }
+
+    document.getElementById('saveConsoleLoggingBtn').addEventListener('click', async () => {
+      const enabled = document.getElementById('consoleLoggingEnabled').checked;
+      const maxSizeMB = parseInt(document.getElementById('maxLogFileSize').value);
+      const maxFiles = parseInt(document.getElementById('maxRotatedFiles').value);
+
+      try {
+        const res = await fetch('/admin/api/console-logging', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled, maxSizeMB, maxFiles })
+        });
+
+        if (!res.ok) throw new Error('Failed to save settings');
+
+        showSuccessToast('Console logging settings saved');
+      } catch (err) {
+        console.error('Failed to save console logging settings:', err);
+        showErrorToast('Failed to save settings');
+      }
+    });
+
+    document.getElementById('clearLogsBtn').addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to clear all log files? This cannot be undone.')) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/admin/api/clear-logs', {
+          method: 'POST'
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Failed to clear logs');
+
+        showSuccessToast(`Logs cleared successfully: ${data.filesCleared.join(', ')}`);
+      } catch (err) {
+        console.error('Failed to clear logs:', err);
+        showErrorToast('Failed to clear logs: ' + err.message);
+      }
+    });
+
+    // Load console logging settings on page load
+    loadConsoleLoggingSettings();
+  </script>
+  <script src="/tooltip.js"></script>
+</body>
+</html>

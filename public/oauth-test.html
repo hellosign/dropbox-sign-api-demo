@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>OAuth POC Test - Dropbox Sign</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    h2 {
+      color: #555;
+      margin-top: 30px;
+      border-bottom: 2px solid #0061fe;
+      padding-bottom: 10px;
+    }
+    .info {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .success {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .error {
+      background: #ffebee;
+      border-left: 4px solid #f44336;
+      padding: 15px;
+      margin: 20px 0;
+      display: none;
+    }
+    .status-box {
+      padding: 15px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    .connected {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+    }
+    .disconnected {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin: 10px 0;
+      font-family: inherit;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background: #0061fe;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0052d9;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    button.secondary {
+      background: #6c757d;
+    }
+    button.secondary:hover {
+      background: #5a6268;
+    }
+    button.danger {
+      background: #dc3545;
+    }
+    button.danger:hover {
+      background: #c82333;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .form-group {
+      margin: 15px 0;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    #result {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 OAuth POC Test</h1>
+
+    <div class="warning">
+      <strong>⚠️ Important Setup Required:</strong>
+      <ol>
+        <li>Go to <a href="https://app.hellosign.com/oauth/createAppForm" target="_blank">Dropbox Sign OAuth App Registration</a></li>
+        <li>Create a new OAuth application</li>
+        <li>Set redirect URI to: <code>http://localhost:3001/oauth/callback</code></li>
+        <li>Copy your Client ID and Client Secret</li>
+        <li>Add them to your <code>.env</code> file as <code>OAUTH_CLIENT_ID</code> and <code>OAUTH_CLIENT_SECRET</code></li>
+        <li>Restart your server</li>
+      </ol>
+    </div>
+
+    <h2>Step 1: Connect with OAuth</h2>
+
+    <div id="status-box" class="status-box"></div>
+
+    <div class="form-group">
+      <label>User ID (for testing multiple users):</label>
+      <input type="text" id="user-id" value="test_user_1" placeholder="test_user_1">
+      <small>Use different IDs to test multiple OAuth connections</small>
+    </div>
+
+    <button onclick="checkStatus()">Check Connection Status</button>
+    <button onclick="connectOAuth()">Connect with Dropbox Sign OAuth</button>
+    <button class="danger" onclick="disconnect()">Disconnect</button>
+
+    <div class="info">
+      <strong>What happens when you click "Connect with Dropbox Sign OAuth":</strong>
+      <ol>
+        <li>You'll be redirected to Dropbox Sign</li>
+        <li>Log in as the user you want to test (e.g., dbx.microsoft@gmail.com)</li>
+        <li>Authorize the application</li>
+        <li>You'll be redirected back with access token</li>
+        <li>Token is stored in memory (POC only)</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="container" id="send-section" style="display: none;">
+    <h2>Step 2: Send Signature Request with OAuth</h2>
+
+    <div class="warning" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+      <strong>⚠️ Important: "Acting on behalf of" cannot be removed</strong>
+      <p>After extensive testing, we confirmed that Dropbox Sign OAuth always shows "acting on behalf of" in audit trails when using an API App. This is by design for legal accountability.</p>
+    </div>
+
+    <div style="margin: 20px 0;">
+      <h3 style="margin-bottom: 15px;">Choose Sending Method:</h3>
+
+      <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+        <label style="flex: 1; padding: 15px; background: #f0f7ff; border: 2px solid #0061fe; border-radius: 6px; cursor: pointer;">
+          <input type="radio" name="send-method" value="document" checked>
+          <strong style="display: block; margin-top: 8px;">Send with Uploaded Document</strong>
+          <small style="color: #666; display: block; margin-top: 4px;">Upload your own PDF document</small>
+        </label>
+
+        <label style="flex: 1; padding: 15px; background: white; border: 2px solid #dee2e6; border-radius: 6px; cursor: pointer;">
+          <input type="radio" name="send-method" value="template">
+          <strong style="display: block; margin-top: 8px;">Send with Template</strong>
+          <small style="color: #666; display: block; margin-top: 4px;">Use an existing template</small>
+        </label>
+      </div>
+
+      <p style="color: #666; font-size: 14px; margin: 0; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+        <strong>Note:</strong> Both methods show "acting on behalf of" in audit trails.
+      </p>
+    </div>
+
+    <div id="document-section">
+      <h3>Send with Uploaded Document</h3>
+      <div class="form-group">
+        <label>Upload Document (PDF):</label>
+        <input type="file" id="upload-file" accept=".pdf,.doc,.docx">
+      </div>
+
+      <div class="form-group">
+        <label>Signer Name:</label>
+        <input type="text" id="doc-signer-name" value="Test Signer">
+      </div>
+
+      <div class="form-group">
+        <label>Signer Email:</label>
+        <input type="email" id="doc-signer-email" value="signer@example.com">
+      </div>
+
+      <div class="form-group">
+        <label>Subject (optional):</label>
+        <input type="text" id="doc-subject" placeholder="Please sign this document">
+      </div>
+
+      <div class="form-group">
+        <label>Message (optional):</label>
+        <textarea id="doc-message" rows="3" placeholder="Additional message to signer"></textarea>
+      </div>
+
+      <button onclick="sendWithDocument()">Send with Document (Pure OAuth)</button>
+
+      <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-left: 4px solid #ffc107;">
+        <strong>🧪 Alternative: Unclaimed Draft (Self-Claim)</strong>
+        <p>Create an unclaimed draft as the OAuth user, then have them claim it themselves. This might avoid "acting on behalf of".</p>
+        <button onclick="createUnclaimedDraft()" style="margin-top: 10px;">Create Unclaimed Draft (OAuth)</button>
+      </div>
+    </div>
+
+    <div id="template-section" style="display: none;">
+      <h3>Send with Template</h3>
+      <div class="info">
+        This will send a signature request using the OAuth access token for the connected user.
+        The audit trail should show <strong>ONLY</strong> that user's email - no "acting on behalf of".
+      </div>
+
+    <div class="form-group">
+      <label>Template ID:</label>
+      <input type="text" id="template-id" placeholder="Enter template ID">
+    </div>
+
+    <div class="form-group">
+      <label>Signer Name:</label>
+      <input type="text" id="signer-name" value="Test Signer">
+    </div>
+
+    <div class="form-group">
+      <label>Signer Email:</label>
+      <input type="email" id="signer-email" value="signer@example.com">
+    </div>
+
+    <div class="form-group">
+      <label>Signer Role (from template):</label>
+      <input type="text" id="signer-role" value="Client" placeholder="e.g., Client, Signer, Employee">
+      <small style="display: block; margin-top: 5px; color: #666;">
+        Check your template to see what roles it has. Common roles: Client, Signer, Employee, Contractor
+      </small>
+    </div>
+
+    <div class="form-group">
+      <label>API App Client ID (optional):</label>
+      <input type="text" id="client-id" placeholder="Leave empty for pure OAuth (no 'acting on behalf of')">
+      <div style="margin-top: 10px;">
+        <input type="checkbox" id="use-client-id">
+        <label for="use-client-id" style="display: inline; font-weight: normal;">
+          Use API App client_id (will show "acting on behalf of")
+        </label>
+      </div>
+      <small style="display: block; margin-top: 5px; color: #dc3545;">
+        <strong>⚠️ To remove "acting on behalf of":</strong> Leave this UNCHECKED and empty!
+      </small>
+    </div>
+
+      <button onclick="sendSignatureRequest()">Send with Template (OAuth)</button>
+    </div>
+
+    <div id="result" class="success">
+      <h3>✅ Success!</h3>
+      <pre id="result-data"></pre>
+      <div class="warning" style="margin-top: 15px;">
+        <strong>Now verify the audit trail:</strong>
+        <ol>
+          <li>Go to your <a href="https://app.hellosign.com/home/manage" target="_blank">Dropbox Sign Dashboard</a></li>
+          <li>Find the signature request that was just sent</li>
+          <li>Download the audit trail PDF</li>
+          <li>Check if it shows ONLY the OAuth user's email (no "acting on behalf of")</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Actual Audit Trail Results</h2>
+
+    <p style="color: #856404; background: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; border-radius: 4px;">
+      <strong>Note:</strong> After testing all possible configurations, we confirmed that "acting on behalf of"
+      appears in all OAuth scenarios when using an API App. This is by design for legal accountability.
+    </p>
+
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+      <thead>
+        <tr style="background: #f5f5f5;">
+          <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Method</th>
+          <th style="padding: 10px; text-align: left; border: 1px solid #ddd;">Audit Trail Shows</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>API Key Only</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd;">Sent by demo@kelzi.com</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>API Key + Unclaimed Draft</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd;">Sent by demo@kelzi.com <em>acting on behalf of</em> user@example.com</td>
+        </tr>
+        <tr style="background: #fff3cd;">
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>OAuth (all configurations)</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd;">Sent by demo@kelzi.com <em>acting on behalf of</em> OAuth-user@example.com</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
+      <strong>💡 Key Insight:</strong> The "acting on behalf of" attribution is not a bug - it accurately shows
+      that the API App owner (demo@kelzi.com) facilitated the request for the OAuth user. This maintains
+      legal accountability and is standard for embedded signing platforms.
+    </div>
+  </div>
+
+  <script>
+    const userId = () => document.getElementById('user-id').value || 'test_user_1';
+
+    // Toggle between document and template sections
+    function updateSendMethodUI() {
+      const documentRadio = document.querySelector('input[name="send-method"][value="document"]');
+      const templateRadio = document.querySelector('input[name="send-method"][value="template"]');
+
+      // Update section visibility
+      if (documentRadio.checked) {
+        document.getElementById('document-section').style.display = 'block';
+        document.getElementById('template-section').style.display = 'none';
+      } else {
+        document.getElementById('document-section').style.display = 'none';
+        document.getElementById('template-section').style.display = 'block';
+      }
+
+      // Update label styles
+      document.querySelectorAll('input[name="send-method"]').forEach(radio => {
+        const label = radio.closest('label');
+        if (radio.checked) {
+          label.style.borderColor = '#0061fe';
+          label.style.background = '#f0f7ff';
+        } else {
+          label.style.borderColor = '#dee2e6';
+          label.style.background = 'white';
+        }
+      });
+    }
+
+    document.querySelectorAll('input[name="send-method"]').forEach(radio => {
+      radio.addEventListener('change', updateSendMethodUI);
+    });
+
+    // Initialize on page load
+    updateSendMethodUI();
+
+    async function checkStatus() {
+      try {
+        const res = await fetch(`/oauth/status?user_id=${userId()}`);
+        const data = await res.json();
+
+        const statusBox = document.getElementById('status-box');
+        const sendSection = document.getElementById('send-section');
+
+        if (data.connected) {
+          const expiredText = data.expired ? ' (⚠️ EXPIRED - refresh needed)' : '';
+          statusBox.className = 'status-box connected';
+          statusBox.innerHTML = `
+            <strong>✅ Connected</strong><br>
+            Email: ${data.account_email}${expiredText}<br>
+            Expires: ${new Date(data.expires_at * 1000).toLocaleString()}
+          `;
+          sendSection.style.display = 'block';
+        } else {
+          statusBox.className = 'status-box disconnected';
+          statusBox.innerHTML = `
+            <strong>❌ Not Connected</strong><br>
+            Click "Connect with Dropbox Sign OAuth" to authenticate
+          `;
+          sendSection.style.display = 'none';
+        }
+      } catch (err) {
+        alert('Error checking status: ' + err.message);
+      }
+    }
+
+    function connectOAuth() {
+      window.location.href = `/oauth/connect?user_id=${userId()}`;
+    }
+
+    async function disconnect() {
+      try {
+        await fetch('/oauth/disconnect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId() })
+        });
+        await checkStatus();
+      } catch (err) {
+        alert('Error disconnecting: ' + err.message);
+      }
+    }
+
+    async function sendWithDocument() {
+      const file = document.getElementById('upload-file').files[0];
+      const signerName = document.getElementById('doc-signer-name').value;
+      const signerEmail = document.getElementById('doc-signer-email').value;
+      const subject = document.getElementById('doc-subject').value;
+      const message = document.getElementById('doc-message').value;
+
+      if (!file) {
+        alert('Please upload a document');
+        return;
+      }
+
+      if (!signerName || !signerEmail) {
+        alert('Please fill in signer name and email');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('user_id', userId());
+      formData.append('signer_name', signerName);
+      formData.append('signer_email', signerEmail);
+      formData.append('subject', subject);
+      formData.append('message', message);
+
+      try {
+        const res = await fetch('/oauth/send-with-document', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Request failed');
+        }
+
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result-data').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        alert('Error sending signature request: ' + err.message);
+      }
+    }
+
+    async function createUnclaimedDraft() {
+      const file = document.getElementById('upload-file').files[0];
+      const signerName = document.getElementById('doc-signer-name').value;
+      const signerEmail = document.getElementById('doc-signer-email').value;
+      const subject = document.getElementById('doc-subject').value;
+      const message = document.getElementById('doc-message').value;
+
+      if (!file) {
+        alert('Please upload a document');
+        return;
+      }
+
+      if (!signerName || !signerEmail) {
+        alert('Please fill in signer name and email');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('user_id', userId());
+      formData.append('signer_name', signerName);
+      formData.append('signer_email', signerEmail);
+      formData.append('subject', subject);
+      formData.append('message', message);
+
+      try {
+        const res = await fetch('/oauth/create-unclaimed-draft', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Request failed');
+        }
+
+        // Show claim URL
+        const claimUrl = data.claim_url;
+        const instructions = `Unclaimed draft created!\n\n` +
+          `Claim URL: ${claimUrl}\n\n` +
+          `To test if this removes "acting on behalf of":\n` +
+          `1. Open the claim URL (it will be copied to clipboard)\n` +
+          `2. You'll see the draft in HelloSign\n` +
+          `3. Click "Send" to send the signature request\n` +
+          `4. Check the audit trail\n\n` +
+          `Click OK to copy the claim URL to clipboard.`;
+
+        if (confirm(instructions)) {
+          navigator.clipboard.writeText(claimUrl);
+          alert('Claim URL copied! Open it in your browser to test.');
+        }
+
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result-data').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        alert('Error creating unclaimed draft: ' + err.message);
+      }
+    }
+
+    async function sendSignatureRequest() {
+      const templateId = document.getElementById('template-id').value;
+      const signerName = document.getElementById('signer-name').value;
+      const signerEmail = document.getElementById('signer-email').value;
+      const signerRole = document.getElementById('signer-role').value;
+      const clientId = document.getElementById('client-id').value;
+      const useClientId = document.getElementById('use-client-id').checked;
+
+      if (!templateId || !signerName || !signerEmail) {
+        alert('Please fill in required fields (template, name, email)');
+        return;
+      }
+
+      if (useClientId && !clientId) {
+        alert('Please enter API App Client ID or uncheck the checkbox');
+        return;
+      }
+
+      try {
+        const res = await fetch('/oauth/send-signature-request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId(),
+            template_id: templateId,
+            signer_name: signerName,
+            signer_email: signerEmail,
+            signer_role: signerRole || 'Customer',
+            client_id: clientId,
+            use_client_id: useClientId
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'Request failed');
+        }
+
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result-data').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        alert('Error sending signature request: ' + err.message);
+      }
+    }
+
+    // Check status on page load
+    checkStatus();
+  </script>
+</body>
+</html>

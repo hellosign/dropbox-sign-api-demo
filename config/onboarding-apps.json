@@ -1,0 +1,26 @@
+[
+  {
+    "namePrefix": "acme-app",
+    "domains": ["${DOMAIN}"],
+    "description": "General purpose testing app",
+    "callbackUrl": null,
+    "logoFile": "acme-logo.png",
+    "testMode": true
+  },
+  {
+    "namePrefix": "hanford-app",
+    "domains": ["${DOMAIN}"],
+    "description": "Pre-configured for webhook events and OAuth",
+    "callbackUrl": "${CALLBACK_URL}",
+    "oauthCallbackUrl": "${OAUTH_REDIRECT_URI}",
+    "oauthScopes": [
+      "api_app_access",
+      "team_access",
+      "template_access",
+      "signature_request_access",
+      "account_access"
+    ],
+    "logoFile": "hanford-logo.png",
+    "testMode": true
+  }
+]

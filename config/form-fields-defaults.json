@@ -1,0 +1,57 @@
+[
+  {
+    "id": "f1",
+    "label": "Client Signature",
+    "apiType": "signature",
+    "signer": 0,
+    "page": 1,
+    "x": 165,
+    "y": 497,
+    "w": 121,
+    "h": 17
+  },
+  {
+    "id": "f2",
+    "label": "Client Date",
+    "apiType": "date_signed",
+    "signer": 0,
+    "page": 1,
+    "x": 164,
+    "y": 557,
+    "w": 98,
+    "h": 17
+  },
+  {
+    "id": "f3",
+    "label": "Agent Signature",
+    "apiType": "signature",
+    "signer": 1,
+    "page": 1,
+    "x": 357,
+    "y": 495,
+    "w": 200,
+    "h": 28
+  },
+  {
+    "id": "f4",
+    "label": "Agent Date",
+    "apiType": "date_signed",
+    "signer": 1,
+    "page": 1,
+    "x": 355,
+    "y": 562,
+    "w": 150,
+    "h": 17
+  },
+  {
+    "id": "f5",
+    "label": "Effective Date",
+    "apiType": "date_signed",
+    "signer": 0,
+    "page": 0,
+    "x": 154,
+    "y": 213,
+    "w": 87,
+    "h": 15
+  }
+]

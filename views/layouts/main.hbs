@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="{{locale}}">
+<head>
+  <meta charset="UTF-8" />
+  <title>{{title}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/style.css">
+
+  {{!-- Inline client-side translations for JavaScript --}}
+  <script>
+    window.i18n = {
+      common: {
+        logout: "{{__ "common.logout"}}",
+        save: "{{__ "common.save"}}",
+        cancel: "{{__ "common.cancel"}}",
+        delete: "{{__ "common.delete"}}",
+        edit: "{{__ "common.edit"}}",
+        close: "{{__ "common.close"}}",
+        loading: "{{__ "common.loading"}}",
+        back: "{{__ "common.back"}}",
+        search: "{{__ "common.search"}}",
+        apply: "{{__ "common.apply"}}",
+        refresh: "{{__ "common.refresh"}}",
+        yes: "{{__ "common.yes"}}",
+        no: "{{__ "common.no"}}"
+      },
+      toast: {
+        success: {
+          saved: "{{__ "toast.success.saved"}}",
+          deleted: "{{__ "toast.success.deleted"}}",
+          updated: "{{__ "toast.success.updated"}}",
+          sent: "{{__ "toast.success.sent"}}",
+          copied: "{{__ "toast.success.copied"}}"
+        },
+        error: {
+          failed: "{{__ "toast.error.failed"}}",
+          network: "{{__ "toast.error.network"}}",
+          invalid: "{{__ "toast.error.invalid"}}",
+          missing: "{{__ "toast.error.missing"}}"
+        }
+      },
+      buttons: {
+        sending: "{{__ "buttons.sending"}}",
+        saving: "{{__ "buttons.saving"}}",
+        deleting: "{{__ "buttons.deleting"}}",
+        loading: "{{__ "buttons.loading"}}",
+        send_signature_template: "{{__ "buttons.send_signature_template"}}",
+        view_sign_embedded: "{{__ "buttons.view_sign_embedded"}}",
+        prepare_file_unclaimed: "{{__ "buttons.prepare_file_unclaimed"}}",
+        prepare_template_unclaimed: "{{__ "buttons.prepare_template_unclaimed"}}"
+      },
+      form: {
+        label: {
+          api_app: "{{__ "form.label.api_app"}}",
+          theme: "{{__ "form.label.theme"}}",
+          document: "{{__ "form.label.document"}}",
+          template: "{{__ "form.label.template"}}"
+        },
+        button: {
+          choose_file: "{{__ "form.button.choose_file"}}"
+        },
+        option: {
+          use_template: "{{__ "form.option.use_template"}}"
+        }
+      },
+      confirm: {
+        delete_template: "{{__ "confirm.delete_template"}}",
+        delete_user: "{{__ "confirm.delete_user"}}",
+        delete_api_app: "{{__ "confirm.delete_api_app"}}",
+        unsaved_changes: "{{__ "confirm.unsaved_changes"}}"
+      },
+      error: {
+        unauthorized: "{{__ "error.unauthorized"}}",
+        network: "{{__ "error.network"}}",
+        server: "{{__ "error.server"}}",
+        validation: "{{__ "error.validation"}}"
+      },
+      api_logs: {
+        show_request: "{{__ "api_logs.show_request"}}",
+        hide_request: "{{__ "api_logs.hide_request"}}",
+        show_response: "{{__ "api_logs.show_response"}}",
+        hide_response: "{{__ "api_logs.hide_response"}}",
+        copy: "{{__ "api_logs.copy"}}",
+        copied: "{{__ "api_logs.copied"}}"
+      },
+      signature_status: {
+        send_reminders: "{{__ "signature_status.send_reminders"}}",
+        send_reminders_count: "{{__ "signature_status.send_reminders_count"}}"
+      },
+      team: {
+        members_title: "{{__ "team.members_title"}}",
+        member: "{{__ "team.member"}}",
+        members: "{{__ "team.members"}}",
+        role: {
+          admin: "{{__ "team.role.admin"}}",
+          member: "{{__ "team.role.member"}}",
+          owner: "{{__ "team.role.owner"}}",
+          developer: "{{__ "team.role.developer"}}"
+        },
+        table: {
+          name: "{{__ "team.table.name"}}",
+          email: "{{__ "team.table.email"}}",
+          role: "{{__ "team.table.role"}}",
+          team: "{{__ "team.table.team"}}"
+        }
+      }
+    };
+
+    // Translation helper for client-side JavaScript
+    function t(key) {
+      const keys = key.split('.');
+      let result = window.i18n;
+      for (const k of keys) {
+        result = result?.[k];
+      }
+      return result || key;
+    }
+  </script>
+</head>
+<body>
+  <div id="toastContainer" class="toast-container"></div>
+  {{{body}}}
+
+  <script src="https://cdn.hellosign.com/public/js/embedded/v2.10.0/embedded.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+  <script src="/main.js?v=1.9.2"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+node_modules/
+.env
+.env.development
+.env.production
+.env.local
+.env.*.local
+.DS_Store
+dist/
+build/
+templates.json
+template-labels.json
+app-visibility.json
+app-test-mode.json
+data/
+!data/.gitkeep
+logs/
+*.log
+
+# Internal development files (excluded from public version)
+.claude/
+CLAUDE.md
+scripts/
+tests/
+
+# Agent automation files (if auto-generated)
+.agents/
+AGENTS.md
+
+# Customer demo data (should stay outside repo)
+customer-*/
+signportal-customers/
+**/customer-analysis.md
+**/template-ids*.json
+create-*-templates.mjs

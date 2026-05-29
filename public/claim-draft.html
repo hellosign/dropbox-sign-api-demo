@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Claim Unclaimed Draft - Dropbox Sign Test</title>
+  <script src="https://cdn.jsdelivr.net/npm/hellosign-embedded@2/umd/embedded.production.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    .info {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .error {
+      background: #ffebee;
+      border-left: 4px solid #f44336;
+      padding: 15px;
+      margin: 20px 0;
+      display: none;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      margin: 10px 0;
+    }
+    button {
+      background: #0061fe;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0052d9;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    #signing-container {
+      margin-top: 20px;
+      height: 600px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      display: none;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Claim Unclaimed Draft Test</h1>
+
+    <div class="info">
+      <strong>Purpose:</strong> This page tests whether <code>requester_email_address</code> properly sets the sender in audit trails for unclaimed drafts.
+    </div>
+
+    <div class="warning">
+      <strong>⚠️ Important:</strong> Make sure you're logged into Dropbox Sign as the intended requester email before claiming.
+    </div>
+
+    <div id="error-message" class="error"></div>
+
+    <div id="input-section">
+      <h3>Step 1: Enter the Claim URL</h3>
+      <p>Paste the claim URL you received:</p>
+      <input type="text" id="claim-url" placeholder="https://app.hellosign.com/editor/claimDraft?...">
+
+      <h3>Step 2: Enter the API App Client ID</h3>
+      <p>This is required to initialize the HelloSign embedded client:</p>
+      <input type="text" id="client-id" placeholder="e.g., abc123def456">
+
+      <button id="open-btn" onclick="openClaimUrl()">Open Claim URL</button>
+    </div>
+
+    <div id="signing-container"></div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #666; font-size: 14px;">
+      <strong>How to verify the test:</strong>
+      <ol>
+        <li>After clicking "Send for signature" in the embedded view</li>
+        <li>Go to your Dropbox Sign dashboard</li>
+        <li>Find the signature request that was just sent</li>
+        <li>Download the audit trail PDF</li>
+        <li>Check who appears as the sender/requester</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    let client = null;
+
+    function showError(message) {
+      const errorDiv = document.getElementById('error-message');
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      setTimeout(() => {
+        errorDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    function openClaimUrl() {
+      const claimUrl = document.getElementById('claim-url').value.trim();
+      const clientId = document.getElementById('client-id').value.trim();
+
+      if (!claimUrl) {
+        showError('Please enter a claim URL');
+        return;
+      }
+
+      if (!clientId) {
+        showError('Please enter the API App Client ID');
+        return;
+      }
+
+      // Validate URL format
+      if (!claimUrl.startsWith('https://') && !claimUrl.startsWith('http://')) {
+        showError('Invalid URL format');
+        return;
+      }
+
+      // Initialize HelloSign client
+      if (!client) {
+        client = new HelloSign({ clientId: clientId });
+
+        client.on('send', () => {
+          alert('✅ Draft sent successfully! Check the audit trail in your Dropbox Sign dashboard.');
+          document.getElementById('signing-container').style.display = 'none';
+          document.getElementById('input-section').style.display = 'block';
+        });
+
+        client.on('cancel', () => {
+          console.log('User canceled');
+          document.getElementById('signing-container').style.display = 'none';
+          document.getElementById('input-section').style.display = 'block';
+        });
+
+        client.on('close', () => {
+          console.log('Embedded view closed');
+          document.getElementById('signing-container').style.display = 'none';
+          document.getElementById('input-section').style.display = 'block';
+        });
+
+        client.on('error', (err) => {
+          console.error('Error:', err);
+          showError('Error: ' + (err.message || 'Unknown error'));
+        });
+      }
+
+      // Hide input section and show signing container
+      document.getElementById('input-section').style.display = 'none';
+      document.getElementById('signing-container').style.display = 'block';
+
+      // Open the claim URL
+      try {
+        client.open(claimUrl, {
+          container: document.getElementById('signing-container'),
+          skipDomainVerification: true,
+          allowCancel: true
+        });
+      } catch (err) {
+        showError('Failed to open claim URL: ' + err.message);
+        document.getElementById('signing-container').style.display = 'none';
+        document.getElementById('input-section').style.display = 'block';
+      }
+    }
+
+    // Auto-fill from URL parameters (for easy sharing)
+    const urlParams = new URLSearchParams(window.location.search);
+    const claimUrl = urlParams.get('claim_url');
+    const clientId = urlParams.get('client_id');
+
+    if (claimUrl) {
+      document.getElementById('claim-url').value = decodeURIComponent(claimUrl);
+    }
+    if (clientId) {
+      document.getElementById('client-id').value = clientId;
+    }
+  </script>
+</body>
+</html>

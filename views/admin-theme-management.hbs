@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Admin - Theme Management</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/toast.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-title {
+      margin: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .admin-title img {
+      height: 80px;
+      width: auto;
+    }
+
+    .admin-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: #5e5e5e;
+    }
+
+    .back-link {
+      padding: 8px 16px;
+      background: #0061FF;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .admin-nav {
+      background: white;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+    }
+
+    .admin-nav a {
+      padding: 12px 24px;
+      color: #64748b;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .admin-nav a:hover {
+      color: #1e293b;
+    }
+
+    .admin-nav a.active {
+      color: #2563eb;
+      border-bottom-color: #2563eb;
+    }
+
+    .admin-container {
+      padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .section-card {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+      margin: 0 0 16px 0;
+      color: #1a1a1a;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #0061FF;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0052e0;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    .btn-secondary {
+      background: #64748b;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .themes-table-container {
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .themes-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .themes-table thead {
+      background: #f8fafc;
+      border-bottom: 2px solid #e1e4e8;
+    }
+
+    .themes-table th {
+      text-align: left;
+      padding: 12px;
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .themes-table th:first-child {
+      width: 50px;
+      text-align: center;
+    }
+
+    .themes-table th:last-child {
+      width: 80px;
+      text-align: center;
+    }
+
+    .themes-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e1e4e8;
+      vertical-align: middle;
+    }
+
+    .themes-table td:first-child {
+      text-align: center;
+    }
+
+    .themes-table tbody tr {
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+
+    .themes-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
+    .themes-table tbody tr.selected {
+      background: #eff6ff;
+    }
+
+    .theme-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .theme-name-cell {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .theme-id-cell {
+      font-family: 'SF Mono', Monaco, monospace;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .bulk-actions-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .bulk-actions-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .selection-count {
+      font-size: 14px;
+      color: #5e5e5e;
+      font-weight: 500;
+    }
+
+    .form-field {
+      margin-bottom: 16px;
+    }
+
+    .form-field label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+      font-size: 14px;
+    }
+
+    .form-field input[type="text"],
+    .form-field input[type="file"],
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-field textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .form-field input[type="checkbox"] {
+      margin-right: 8px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      overflow-y: auto;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0;
+    }
+
+    .close-modal {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #64748b;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-modal:hover {
+      color: #1a1a1a;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #64748b;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #64748b;
+    }
+
+    .user-count {
+      display: inline-block;
+      background: #0061FF;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    pre {
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 12px;
+      max-height: 400px;
+    }
+
+    .file-upload-area {
+      border: 2px dashed #cbd5e1;
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .file-upload-area:hover {
+      border-color: #0061FF;
+      background: #f8fafc;
+    }
+
+    .file-upload-area.drag-over {
+      border-color: #0061FF;
+      background: #eff6ff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="admin-header">
+    <h1 class="admin-title"><img src="/admin_panel_fit.png" alt="Dropbox Sign Demo Admin Panel"></h1>
+    <div class="admin-user">
+      <span>Signed in as: <strong>{{userEmail}}</strong></span>
+      <a href="/" class="back-link">← Back to Portal</a>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="admin-nav">
+    <a href="/admin">Users & System</a>
+    <a href="/admin/translations">Translation Management</a>
+    <a href="/admin/tooltip-management">Tooltip Management</a>
+    <a href="/admin/access-control">Access Control</a>
+    <a href="/admin/security">Security Dashboard</a>
+    <a href="/admin/theme-management" class="active">Theme Management</a>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="admin-container">
+
+    <!-- Unified Theme Management -->
+    <div class="section-card">
+      <h2 class="section-title">Theme Management</h2>
+      <p style="color: #64748b; margin-bottom: 20px;">Manage all themes - defaults (config/themes.json) and user distribution</p>
+
+      <!-- Bulk Actions Bar -->
+      <div class="bulk-actions-bar">
+        <div class="bulk-actions-left">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="select-all-themes" style="width: 20px; height: 20px; cursor: pointer;">
+            <span style="font-size: 14px; font-weight: 500;">Select All</span>
+          </label>
+          <span class="selection-count" id="selection-count">0 selected</span>
+        </div>
+        <div class="btn-group" style="margin: 0;">
+          <button class="btn btn-primary" id="publish-to-users-btn" disabled>Publish to Users</button>
+          <button class="btn btn-danger" id="remove-from-users-btn" disabled>Remove from Users</button>
+          <button class="btn btn-primary" id="export-btn" disabled>Export Selected</button>
+          <button class="btn btn-danger" id="delete-btn" disabled>Delete Selected</button>
+          <button class="btn btn-primary" id="import-btn">Import Theme</button>
+          <button class="btn btn-success" id="add-theme-btn">Add New Theme</button>
+        </div>
+      </div>
+
+      <div id="themes-table-container" class="themes-table-container">
+        <div class="loading">Loading themes...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Import Theme Modal -->
+  <div id="import-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Import Theme</h3>
+        <button class="close-modal" id="close-import-modal">&times;</button>
+      </div>
+
+      <div class="form-field">
+        <label>Upload Theme JSON File</label>
+        <input type="file" id="theme-file-input" accept=".json">
+      </div>
+
+      <div id="theme-preview" style="display: none;">
+        <h4 style="margin: 20px 0 10px 0;">Theme Preview</h4>
+        <pre id="theme-preview-json"></pre>
+
+        <div style="background: #eff6ff; padding: 16px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #0061FF;">
+          <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600;">Import Options</h4>
+          <p style="margin: 0 0 12px 0; font-size: 13px; color: #5e5e5e;">Select where to save this theme:</p>
+
+          <div class="form-field" style="margin-bottom: 12px;">
+            <label class="checkbox-label">
+              <input type="checkbox" id="import-add-to-defaults">
+              <strong>Add to defaults</strong> - Save to config/themes.json (will appear in this table)
+            </label>
+          </div>
+
+          <div class="form-field">
+            <label class="checkbox-label">
+              <input type="checkbox" id="import-publish-to-users">
+              <strong>Publish to all users</strong> - Add to all existing user accounts
+            </label>
+          </div>
+
+          <p style="margin: 12px 0 0 0; font-size: 12px; color: #64748b; font-style: italic;">
+            💡 Tip: Check "Add to defaults" to make it available for new users
+          </p>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="import-theme-submit-btn">Import Theme</button>
+          <button class="btn btn-secondary" id="import-modal-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Theme Modal -->
+  <div id="theme-editor-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="editor-modal-title">Add New Theme</h3>
+        <button class="close-modal" id="close-theme-editor">&times;</button>
+      </div>
+
+      <div id="theme-editor-form">
+        <div class="form-field">
+          <label>Theme ID (snake_case)</label>
+          <input type="text" id="edit-theme-id" placeholder="my_theme">
+        </div>
+
+        <div class="form-field">
+          <label>Theme Name</label>
+          <input type="text" id="edit-theme-name" placeholder="My Theme">
+        </div>
+
+        <div class="form-field">
+          <label>Page Title</label>
+          <input type="text" id="edit-page-title" placeholder="Manage My Documents">
+        </div>
+
+        <div class="form-field">
+          <label>Tab Label</label>
+          <input type="text" id="edit-tab-label" placeholder="New Document">
+        </div>
+
+        <div class="form-field">
+          <label>Document Template</label>
+          <input type="text" id="edit-doc-template" placeholder="template-id">
+        </div>
+
+        <h4 style="margin: 20px 0 10px 0;">Email Settings</h4>
+
+        <div class="form-field">
+          <label>Email Subject</label>
+          <input type="text" id="edit-email-subject" placeholder="Please sign this document">
+        </div>
+
+        <div class="form-field">
+          <label>Email Message</label>
+          <textarea id="edit-email-message" placeholder="Please review and sign..."></textarea>
+        </div>
+
+        <h4 style="margin: 20px 0 10px 0;">Document Content</h4>
+        <p style="color: #64748b; font-size: 13px; margin-bottom: 12px;">Enter the markdown content for this document. Use placeholders like <code>{{signerName1}}</code> and text tags like <code>[sig|req|signer1]</code>.</p>
+
+        <div class="form-field">
+          <label>Markdown Content</label>
+          <textarea id="edit-document-content" rows="20" style="font-family: 'Monaco', 'Menlo', 'Courier New', monospace; font-size: 12px; line-height: 1.5;"></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="save-theme-btn">Save Theme</button>
+          <button class="btn btn-secondary" id="theme-editor-cancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentThemes = {};
+    let importedThemeData = null;
+    let selectedThemes = new Set();
+
+    // Load default themes
+    async function loadDefaultThemes() {
+      try {
+        const response = await fetch('/admin/api/themes/defaults');
+        const data = await response.json();
+
+        if (data.success) {
+          currentThemes = data.themes;
+          selectedThemes.clear();
+          renderThemes();
+          updateSelectionUI();
+        } else {
+          showToast('Error loading themes: ' + data.error, 'error');
+        }
+      } catch (err) {
+        showToast('Failed to load themes: ' + err.message, 'error');
+      }
+    }
+
+    // Render themes table
+    function renderThemes() {
+      const container = document.getElementById('themes-table-container');
+
+      if (Object.keys(currentThemes).length === 0) {
+        container.innerHTML = '<div class="empty-state">No themes found. Add a theme to get started.</div>';
+        return;
+      }
+
+      const tableHTML = `
+        <table class="themes-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Theme Name</th>
+              <th>Theme ID</th>
+              <th>Page Title</th>
+              <th>Tab Label</th>
+              <th>Template</th>
+              <th>Default</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Object.entries(currentThemes).map(([id, theme]) => `
+              <tr class="${selectedThemes.has(id) ? 'selected' : ''}" data-theme-id="${id}">
+                <td>
+                  <input type="checkbox"
+                         class="theme-checkbox"
+                         data-theme-id="${id}"
+                         ${selectedThemes.has(id) ? 'checked' : ''}>
+                </td>
+                <td class="theme-name-cell">${theme.name}</td>
+                <td class="theme-id-cell">${theme.id}</td>
+                <td>${theme.pageTitle}</td>
+                <td>${theme.tabLabel}</td>
+                <td>${theme.documentTemplate || 'N/A'}</td>
+                <td style="text-align: center;">
+                  <input type="checkbox"
+                         class="default-checkbox"
+                         data-theme-id="${id}"
+                         checked
+                         disabled
+                         title="This theme is in config/themes.json"
+                         style="width: 18px; height: 18px;">
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      container.innerHTML = tableHTML;
+
+      // Attach event listeners to rows and checkboxes (CSP-compliant)
+      const rows = container.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const themeId = row.dataset.themeId;
+
+        // Click on row to toggle
+        row.addEventListener('click', (event) => {
+          // Don't toggle if clicking on checkbox
+          if (event.target.type === 'checkbox') {
+            return;
+          }
+
+          const checkbox = row.querySelector('.theme-checkbox');
+          checkbox.checked = !checkbox.checked;
+          toggleThemeSelection(themeId);
+        });
+
+        // Checkbox change
+        const checkbox = row.querySelector('.theme-checkbox');
+        checkbox.addEventListener('change', () => {
+          toggleThemeSelection(themeId);
+        });
+      });
+    }
+
+    // Toggle individual theme selection
+    function toggleThemeSelection(themeId) {
+      if (selectedThemes.has(themeId)) {
+        selectedThemes.delete(themeId);
+      } else {
+        selectedThemes.add(themeId);
+      }
+      updateSelectionUI();
+      renderThemes();
+    }
+
+    // Toggle select all
+    function toggleSelectAll() {
+      const selectAllCheckbox = document.getElementById('select-all-themes');
+
+      if (selectAllCheckbox.checked) {
+        // Select all themes
+        selectedThemes = new Set(Object.keys(currentThemes));
+      } else {
+        // Deselect all
+        selectedThemes.clear();
+      }
+
+      updateSelectionUI();
+      renderThemes();
+    }
+
+    // Update selection UI (count and button states)
+    function updateSelectionUI() {
+      const count = selectedThemes.size;
+      const total = Object.keys(currentThemes).length;
+
+      document.getElementById('selection-count').textContent = `${count} selected`;
+
+      // Update select all checkbox
+      const selectAllCheckbox = document.getElementById('select-all-themes');
+      selectAllCheckbox.checked = count > 0 && count === total;
+      selectAllCheckbox.indeterminate = count > 0 && count < total;
+
+      // Enable/disable bulk action buttons
+      document.getElementById('publish-to-users-btn').disabled = count === 0;
+      document.getElementById('remove-from-users-btn').disabled = count === 0;
+      document.getElementById('export-btn').disabled = count === 0;
+      document.getElementById('delete-btn').disabled = count === 0;
+    }
+
+    // Export selected themes
+    function exportSelectedThemes() {
+      if (selectedThemes.size === 0) {
+        showToast('Please select at least one theme', 'error');
+        return;
+      }
+
+      if (selectedThemes.size === 1) {
+        // Single theme - export directly
+        const themeId = Array.from(selectedThemes)[0];
+        exportTheme(themeId);
+      } else {
+        // Multiple themes - export as collection
+        const themesToExport = {};
+        selectedThemes.forEach(id => {
+          themesToExport[id] = currentThemes[id];
+        });
+
+        const dataStr = JSON.stringify(themesToExport, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `themes-export-${selectedThemes.size}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+
+        showToast(`Exported ${selectedThemes.size} themes`, 'success');
+      }
+    }
+
+    // Delete selected themes
+    async function deleteSelectedThemes() {
+      if (selectedThemes.size === 0) {
+        showToast('Please select at least one theme', 'error');
+        return;
+      }
+
+      const themeNames = Array.from(selectedThemes).map(id => currentThemes[id]?.name || id).join(', ');
+      if (!confirm(`Are you sure you want to delete ${selectedThemes.size} theme(s) from defaults?\n\n${themeNames}`)) {
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const themeId of selectedThemes) {
+        try {
+          const response = await fetch(`/admin/api/themes/defaults/${themeId}`, {
+            method: 'DELETE'
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            successCount++;
+          } else {
+            errorCount++;
+          }
+        } catch (err) {
+          errorCount++;
+        }
+      }
+
+      if (successCount > 0) {
+        showToast(`Deleted ${successCount} theme(s) from defaults`, 'success');
+      }
+      if (errorCount > 0) {
+        showToast(`Failed to delete ${errorCount} theme(s)`, 'error');
+      }
+
+      selectedThemes.clear();
+      loadDefaultThemes();
+    }
+
+
+    // Export single theme as JSON
+    function exportTheme(themeId) {
+      const theme = currentThemes[themeId];
+      if (!theme) return;
+
+      const dataStr = JSON.stringify(theme, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `theme-${themeId}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      showToast('Theme exported successfully', 'success');
+    }
+
+    // Show import modal
+    function showImportModal() {
+      document.getElementById('import-modal').classList.add('active');
+      document.getElementById('theme-preview').style.display = 'none';
+      document.getElementById('theme-file-input').value = '';
+      // Check "Add to defaults" by default
+      document.getElementById('import-add-to-defaults').checked = true;
+      document.getElementById('import-publish-to-users').checked = false;
+      importedThemeData = null;
+    }
+
+    // Close import modal
+    function closeImportModal() {
+      document.getElementById('import-modal').classList.remove('active');
+    }
+
+    // Handle file selection
+    function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const themeData = JSON.parse(e.target.result);
+          importedThemeData = themeData;
+
+          // Show preview
+          document.getElementById('theme-preview').style.display = 'block';
+          document.getElementById('theme-preview-json').textContent = JSON.stringify(themeData, null, 2);
+        } catch (err) {
+          showToast('Invalid JSON file: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // Import theme
+    async function importTheme() {
+      if (!importedThemeData) {
+        showToast('Please select a theme file first', 'error');
+        return;
+      }
+
+      const addToDefaults = document.getElementById('import-add-to-defaults').checked;
+      const publishToUsers = document.getElementById('import-publish-to-users').checked;
+
+      // Warn if neither option is selected
+      if (!addToDefaults && !publishToUsers) {
+        if (!confirm('Neither "Add to defaults" nor "Publish to users" is checked. The theme will only be validated but not saved anywhere. Continue?')) {
+          return;
+        }
+      }
+
+      try {
+        const response = await fetch('/admin/api/themes/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            themeData: importedThemeData,
+            addToDefaults,
+            publishToUsers
+          })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          let message = `Theme "${data.themeId}" imported successfully`;
+          const actions = [];
+          if (data.addedToDefaults) actions.push('added to defaults');
+          if (data.publishedTo > 0) actions.push(`published to ${data.publishedTo} users`);
+
+          if (actions.length > 0) {
+            message += ' (' + actions.join(', ') + ')';
+          } else {
+            message += ' (validated only, not saved)';
+          }
+
+          showToast(message, 'success');
+          closeImportModal();
+
+          // Reload themes if added to defaults
+          if (data.addedToDefaults) {
+            loadDefaultThemes();
+          }
+        } else {
+          showToast('Error: ' + data.error, 'error');
+        }
+      } catch (err) {
+        showToast('Failed to import theme: ' + err.message, 'error');
+      }
+    }
+
+    // Show add theme modal
+    function showAddThemeModal() {
+      document.getElementById('editor-modal-title').textContent = 'Add New Theme';
+      document.getElementById('theme-editor-modal').classList.add('active');
+      clearThemeEditor();
+    }
+
+    // Close theme editor
+    function closeThemeEditor() {
+      document.getElementById('theme-editor-modal').classList.remove('active');
+    }
+
+    // Clear theme editor
+    function clearThemeEditor() {
+      document.getElementById('edit-theme-id').value = '';
+      document.getElementById('edit-theme-name').value = '';
+      document.getElementById('edit-page-title').value = '';
+      document.getElementById('edit-tab-label').value = '';
+      document.getElementById('edit-doc-template').value = '';
+      document.getElementById('edit-email-subject').value = '';
+      document.getElementById('edit-email-message').value = '';
+      document.getElementById('edit-document-content').value = '';
+    }
+
+    // Save theme
+    async function saveTheme() {
+      const themeId = document.getElementById('edit-theme-id').value.trim();
+      const themeName = document.getElementById('edit-theme-name').value.trim();
+      const pageTitle = document.getElementById('edit-page-title').value.trim();
+      const tabLabel = document.getElementById('edit-tab-label').value.trim();
+      const docTemplate = document.getElementById('edit-doc-template').value.trim();
+      const emailSubject = document.getElementById('edit-email-subject').value.trim();
+      const emailMessage = document.getElementById('edit-email-message').value.trim();
+
+      if (!themeId || !themeName) {
+        showToast('Theme ID and Name are required', 'error');
+        return;
+      }
+
+      const documentContent = document.getElementById('edit-document-content').value.trim();
+
+      const themeData = {
+        id: themeId,
+        name: themeName,
+        pageTitle: pageTitle || themeName,
+        tabLabel: tabLabel || 'New Request',
+        documentTemplate: docTemplate,
+        documentContent: documentContent,
+        sections: {
+          left: {
+            title: 'Signer Details',
+            fields: [
+              { id: 'signerName1', label: 'Name', type: 'text', defaultValue: '' },
+              { id: 'signerEmail1', label: 'Email', type: 'email', defaultValue: '' }
+            ]
+          },
+          right: {
+            title: 'Details',
+            fields: []
+          }
+        },
+        buttons: {
+          send: 'Send for Signature',
+          preview: 'Preview Document',
+          embed: 'View & Sign'
+        },
+        email: {
+          subject: emailSubject || 'Please sign this document',
+          message: emailMessage || 'Please review and sign the document.'
+        }
+      };
+
+      try {
+        const response = await fetch(`/admin/api/themes/defaults/${themeId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ themeData })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          showToast('Theme saved successfully', 'success');
+          closeThemeEditor();
+          loadDefaultThemes();
+        } else {
+          showToast('Error: ' + data.error, 'error');
+        }
+      } catch (err) {
+        showToast('Failed to save theme: ' + err.message, 'error');
+      }
+    }
+
+    // Publish selected themes to all users
+    async function publishSelectedThemesToUsers() {
+      if (selectedThemes.size === 0) {
+        showToast('Please select at least one theme', 'error');
+        return;
+      }
+
+      let totalPublished = 0;
+      let totalSkipped = 0;
+      let errorCount = 0;
+
+      for (const themeId of selectedThemes) {
+        const theme = currentThemes[themeId];
+        if (!theme) continue;
+
+        try {
+          const response = await fetch(`/admin/api/themes/publish/${themeId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              themeData: theme,
+              overwriteExisting: false
+            })
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            totalPublished += data.publishedTo;
+            totalSkipped += data.skipped;
+          } else {
+            errorCount++;
+          }
+        } catch (err) {
+          errorCount++;
+        }
+      }
+
+      if (errorCount === 0) {
+        showToast(`Published ${selectedThemes.size} theme(s) - added to ${totalPublished} users (${totalSkipped} already had them)`, 'success');
+      } else {
+        showToast(`Published with ${errorCount} errors - ${totalPublished} successful`, 'warning');
+      }
+    }
+
+    // Remove selected themes from all users
+    async function removeSelectedThemesFromUsers() {
+      if (selectedThemes.size === 0) {
+        showToast('Please select at least one theme', 'error');
+        return;
+      }
+
+      const themeNames = Array.from(selectedThemes).map(id => currentThemes[id]?.name || id).join(', ');
+      if (!confirm(`Remove ${selectedThemes.size} theme(s) from all users?\n\nThemes: ${themeNames}\n\nThis will delete these themes from all user accounts. This cannot be undone.`)) {
+        return;
+      }
+
+      let totalRemoved = 0;
+      let errorCount = 0;
+
+      for (const themeId of selectedThemes) {
+        try {
+          const response = await fetch(`/admin/api/themes/remove-from-users/${themeId}`, {
+            method: 'DELETE'
+          });
+          const data = await response.json();
+
+          if (data.success) {
+            totalRemoved += data.removedFrom;
+          } else {
+            errorCount++;
+          }
+        } catch (err) {
+          errorCount++;
+        }
+      }
+
+      if (errorCount === 0) {
+        showToast(`Removed ${selectedThemes.size} theme(s) from ${totalRemoved} users`, 'success');
+      } else {
+        showToast(`Removed with ${errorCount} errors`, 'warning');
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDefaultThemes();
+
+      // Attach event listeners to buttons (CSP-compliant)
+      document.getElementById('select-all-themes').addEventListener('change', toggleSelectAll);
+      document.getElementById('publish-to-users-btn').addEventListener('click', publishSelectedThemesToUsers);
+      document.getElementById('remove-from-users-btn').addEventListener('click', removeSelectedThemesFromUsers);
+      document.getElementById('export-btn').addEventListener('click', exportSelectedThemes);
+      document.getElementById('delete-btn').addEventListener('click', deleteSelectedThemes);
+      document.getElementById('import-btn').addEventListener('click', showImportModal);
+      document.getElementById('add-theme-btn').addEventListener('click', showAddThemeModal);
+
+      // Import modal
+      document.getElementById('close-import-modal').addEventListener('click', closeImportModal);
+      document.getElementById('theme-file-input').addEventListener('change', handleFileSelect);
+      document.getElementById('import-theme-submit-btn').addEventListener('click', importTheme);
+      document.getElementById('import-modal-cancel').addEventListener('click', closeImportModal);
+
+      // Theme editor modal
+      document.getElementById('close-theme-editor').addEventListener('click', closeThemeEditor);
+      document.getElementById('save-theme-btn').addEventListener('click', saveTheme);
+      document.getElementById('theme-editor-cancel').addEventListener('click', closeThemeEditor);
+    });
+  </script>
+
+</body>
+</html>

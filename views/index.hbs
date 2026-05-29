@@ -1,0 +1,920 @@
+<div class="header">
+  <div class="header-inner">
+    <img src="/main_logo.png" alt="Company Logo" />
+    {{#if userEmail}}
+    <div style="display:flex; align-items:center; gap:16px; margin-left:auto;">
+      <span style="color:#64748b; font-size:14px;">
+        <strong>{{userEmail}}</strong>
+      </span>
+      {{#if isAdmin}}
+      <a href="/admin" style="padding:8px 16px; background:#6366f1; color:white; border-radius:6px; text-decoration:none; font-size:14px; font-weight:500; transition:background 0.2s;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='#6366f1'">
+        {{__ "nav.admin_panel"}}
+      </a>
+      {{/if}}
+      <form method="POST" action="/logout" style="margin:0;">
+        <button type="submit" style="padding:8px 16px; background:#dc2626; color:white; border:none; border-radius:6px; cursor:pointer; font-size:14px; font-weight:500; transition:background 0.2s;" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+          {{__ "common.logout"}}
+        </button>
+      </form>
+    </div>
+    {{/if}}
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="tab-mandate" data-theme-target="tabLabel">{{tabLabel}}</button>
+  <button class="tab-btn" data-tab="tab-editor">{{__ "nav.tabs.document_editor"}}</button>
+  <button class="tab-btn" data-tab="tab-status">{{__ "nav.tabs.signature_status"}}</button>
+  <button class="tab-btn" data-tab="tab-templates">{{__ "nav.tabs.templates"}}</button>
+  {{#if isTeamAdmin}}
+  <button class="tab-btn" data-tab="tab-team">{{__ "nav.tabs.team"}}</button>
+  {{/if}}
+  <button class="tab-btn" data-tab="tab-apps">{{__ "nav.tabs.api_apps"}}</button>
+  <button class="tab-btn" data-tab="tab-api-logs">{{__ "nav.tabs.api_logs"}}</button>
+  <button class="tab-btn" data-tab="tab-settings">{{__ "nav.tabs.settings"}}</button>
+</div>
+
+{{#unless apiKeyConfigured}}
+<div id="setup-banner" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:14px 20px;margin:0 20px 16px;border-radius:6px;font-size:14px;line-height:1.6;">
+  <strong>Setup required:</strong> No API key is configured. The application cannot connect to the Dropbox Sign API.<br>
+  To fix this, add your API key to the <code>.env</code> file:<br>
+  <code style="display:inline-block;margin-top:4px;padding:4px 8px;background:#ffeeba;border-radius:3px;">API_KEY=your_dropbox_sign_api_key</code><br>
+  <span style="font-size:13px;">Get your API key from <a href="https://app.hellosign.com/home/myAccount#api" target="_blank" style="color:#856404;">hellosign.com</a>, then restart the server.</span>
+</div>
+{{/unless}}
+
+{{#if apiKeyRotationNotice}}
+<div id="key-rotation-banner" style="background:#dbeafe;border:1px solid #3b82f6;color:#1e3a8a;padding:14px 20px;margin:0 20px 16px;border-radius:6px;font-size:14px;line-height:1.6;display:flex;justify-content:space-between;align-items:center;">
+  <div>
+    <strong>✓ API Key Updated:</strong> You logged in with a new API key.
+    {{#if apiKeyRotationNotice.sessionsInvalidated}}
+    {{apiKeyRotationNotice.sessionsInvalidated}} other session(s) have been logged out for security.
+    {{/if}}
+  </div>
+  <button class="dismiss-rotation-notice" style="padding:4px 12px;background:#3b82f6;color:white;border:none;border-radius:4px;cursor:pointer;font-size:13px;">Dismiss</button>
+</div>
+{{/if}}
+
+{{#if showOnboarding}}
+<div id="onboarding-modal" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;">
+  <div style="background:white;border-radius:12px;padding:32px;max-width:500px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+    {{#if hasExistingData}}
+    <!-- Welcome back message for returning users -->
+    <h2 style="margin:0 0 16px;font-size:24px;color:#1e293b;">Welcome back! 👋</h2>
+
+    <p style="color:#475569;line-height:1.6;margin-bottom:24px;">
+      We found existing settings, themes, and data for your account. Would you like to continue with your existing setup or start fresh?
+    </p>
+
+    <div style="background:#f1f5f9;border-radius:8px;padding:16px;margin-bottom:24px;">
+      <p style="margin:0 0 8px;color:#334155;font-weight:500;">Your existing data includes:</p>
+      <ul style="margin:0;padding-left:24px;color:#64748b;font-size:14px;line-height:1.8;">
+        <li>Custom themes and branding settings</li>
+        <li>API configuration and test mode preferences</li>
+        <li>API activity logs</li>
+      </ul>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <button id="continueExistingBtn" style="flex:1;padding:12px 24px;background:#6366f1;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;font-size:14px;">
+        Continue with Existing Data
+      </button>
+      <button id="startFreshBtn" style="flex:1;padding:12px 24px;background:#dc2626;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;font-size:14px;">
+        Start Fresh
+      </button>
+    </div>
+    {{else}}
+    <!-- First-time user message -->
+    <h2 style="margin:0 0 16px;font-size:24px;color:#1e293b;">Welcome to Sign Portal! 👋</h2>
+
+    <p style="color:#475569;line-height:1.6;margin-bottom:24px;">
+      You're all set to start sending signature requests. We've detected that you have access to
+      <strong id="existing-app-count">...</strong> API app(s) from your account and team members.
+    </p>
+
+    <div style="background:#f1f5f9;border-radius:8px;padding:16px;margin-bottom:24px;">
+      <p style="margin:0 0 12px;color:#334155;font-weight:500;">Want to get started quickly?</p>
+      <p style="margin:0;color:#64748b;font-size:14px;line-height:1.5;">
+        We can create 2 demo API apps for you with preset configurations:
+      </p>
+      <ul style="margin:8px 0 0 0;padding-left:24px;color:#64748b;font-size:14px;line-height:1.8;">
+        <li><strong>acme-app</strong> - General purpose testing app</li>
+        <li><strong>hanford-app</strong> - Pre-configured for webhook events</li>
+      </ul>
+    </div>
+
+    <div style="display:flex;gap:12px;">
+      <button id="createDemoAppsBtn" style="flex:1;padding:12px 24px;background:#6366f1;color:white;border:none;border-radius:6px;font-weight:500;cursor:pointer;font-size:14px;">
+        Create Demo Apps
+      </button>
+      <button id="skipOnboardingBtn" style="flex:1;padding:12px 24px;background:#e2e8f0;color:#475569;border:none;border-radius:6px;font-weight:500;cursor:pointer;font-size:14px;">
+        Skip for Now
+      </button>
+    </div>
+    {{/if}}
+
+    <p id="onboarding-error" style="color:#dc2626;font-size:13px;margin:12px 0 0;display:none;"></p>
+    <p id="onboarding-loading" style="color:#6366f1;font-size:13px;margin:12px 0 0;display:none;">Creating apps...</p>
+  </div>
+</div>
+{{/if}}
+
+<div class="main-layout">
+<div class="container">
+
+  <!-- Tab 1: New Mandate -->
+  <div id="tab-mandate" class="tab-panel active">
+    <h1 data-theme-target="pageTitle">{{pageTitle}}</h1>
+
+    <form id="mandateForm" class="form-grid">
+      <div class="app-select-group">
+        <label for="appSelect">{{__ "form.label.api_app"}}</label>
+        <select id="appSelect" name="client_id">
+          <option value="" disabled selected>Loading apps…</option>
+        </select>
+      </div>
+      <div class="theme-select-group">
+        <label for="themeSelect" data-tooltip="themeSelect">{{__ "form.label.theme"}}</label>
+        <select id="themeSelect" name="theme_id">
+        </select>
+      </div>
+      <div class="create-doc-group">
+        <label for="documentMode">{{__ "form.label.document"}}</label>
+        <select id="documentMode" name="documentMode" data-tooltip="documentMode">
+          <option value="none">{{__ "form.option.use_template"}}</option>
+          <option value="auto-append">{{__ "document_mode.auto_append"}}</option>
+          <option value="text-tags">{{__ "document_mode.text_tags"}}</option>
+          <option value="form-fields">{{__ "document_mode.form_fields"}}</option>
+        </select>
+      </div>
+      <div class="template-select-group">
+        <label for="templateSelect">{{__ "form.label.template"}}</label>
+        <select id="templateSelect" name="template_id" required>
+          <option value="" disabled selected>Loading templates…</option>
+        </select>
+      </div>
+      <div class="choose-file-group">
+        <label>&nbsp;</label>
+        <button id="autoAppendChooseBtn" type="button" class="choose-file-btn" disabled>{{__ "form.button.choose_file"}}</button>
+      </div>
+
+      <div class="client-details">
+        <h2 data-theme-target="leftSectionTitle">{{leftSectionTitle}}</h2>
+        <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); gap: 20px;">
+          <!-- Column 1: Primary signer -->
+          <div class="form-group">
+            <label for="signerName1" data-theme-target="nameLabel">{{nameLabel}}</label>
+            <input id="signerName1" name="name" type="text" value="{{name}}" />
+            <div style="margin-top: 8px; display: flex; align-items: center; gap: 12px;">
+              <div>
+                <input id="singleSigner" name="singleSigner" type="checkbox" data-tooltip="singleSigner" checked />
+                <label for="singleSigner">{{__ "form.field.single_signer"}}</label>
+              </div>
+              <!-- Signing Order Indicator (shown only when multi-signer) -->
+              <span id="signingOrderIndicator" style="display: none;">
+                <span id="signingOrderToggle" class="signing-order-toggle" title="Click to toggle signing order">↓ then signs ↓</span>
+              </span>
+            </div>
+            <div style="margin-top: 8px;">
+              <input id="eidAuth" name="eidAuth" type="checkbox" data-tooltip="eidAuth" />
+              <label for="eidAuth">{{__ "form.field.eid_verification"}}</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="signerEmail1" data-theme-target="emailLabel">{{emailLabel}}</label>
+            <input id="signerEmail1" name="email" type="email" value="{{email}}" />
+            <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 12px; position: relative; min-height: 32px;">
+                <div id="smsAuthCheckboxGroup">
+                  <input id="smsAuth" name="smsAuth" type="checkbox" data-tooltip="smsAuth" />
+                  <label for="smsAuth">{{__ "form.field.sms_authentication"}}</label>
+                </div>
+                <div id="smsAuthPhoneGroup" style="display: none;">
+                  <input id="smsAuthPhone" name="smsPhone" type="tel" data-tooltip="smsPhone" placeholder="+44 7700 900000" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" />
+                </div>
+              </div>
+              <div id="smsDeliveryCheckboxGroup" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 12px; position: relative; min-height: 32px;">
+                  <div>
+                    <input id="smsDelivery" name="smsDelivery" type="checkbox" data-tooltip="smsDelivery" disabled />
+                    <label for="smsDelivery">{{__ "form.field.sms_delivery"}}</label>
+                  </div>
+                  <div id="smsDeliveryPhoneGroup" style="display: none;">
+                    <input id="smsDeliveryPhone" name="smsDeliveryPhone" type="tel" placeholder="+44 7700 900000" style="padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 14px;" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Secondary signer -->
+          <div class="form-group">
+            <label for="signerName2" data-theme-target="secondNameLabel">{{secondNameLabel}}</label>
+            <input id="signerName2" name="name2" type="text" value="{{name2}}" />
+          </div>
+          <div class="form-group">
+            <label for="signerEmail2" data-theme-target="secondEmailLabel">{{secondEmailLabel}}</label>
+            <input id="signerEmail2" name="email2" type="email" value="{{email2}}" />
+          </div>
+        </div>
+      </div>
+
+
+      <div class="property-details">
+        <h2 data-theme-target="rightSectionTitle">{{rightSectionTitle}}</h2>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+          <div class="form-group">
+            <label for="field1" data-theme-target="field1Label">{{field1Label}}</label>
+            <input id="field1" name="field1" type="text" value="{{field1}}" required />
+          </div>
+          <div class="form-group">
+            <label for="field2" data-theme-target="field2Label">{{field2Label}}</label>
+            <input id="field2" name="field2" type="text" value="{{field2}}" required />
+          </div>
+          <div class="form-group">
+            <label for="field3" data-theme-target="field3Label">{{field3Label}}</label>
+            <input id="field3" name="field3" type="text" value="{{field3}}" required />
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-row-left">
+        <button id="sendBtn" class="send-btn" type="submit" data-theme-target="sendBtn">{{sendBtnText}}</button>
+        <button id="embedBtn" class="send-btn" type="button" data-tooltip="embedBtn" data-theme-target="embedBtn">{{embedBtnText}}</button>
+      </div>
+      <div class="bottom-row-right">
+        <button id="unclaimedFileBtn" class="send-btn" type="button" data-tooltip="unclaimedFileBtn">{{__ "buttons.prepare_file_unclaimed"}}</button>
+        <button id="unclaimedTemplateBtn" class="send-btn" type="button" data-tooltip="unclaimedTemplateBtn">{{__ "buttons.prepare_template_unclaimed"}}</button>
+      </div>
+    </form>
+    <input id="unclaimedFileInput" type="file" accept=".pdf,.doc,.docx" style="display:none;" />
+    <input id="autoAppendFileInput" type="file" accept=".pdf,.doc,.docx" style="display:none;" />
+
+  <script>window.hellosignClientId = null;</script>
+  <script>window.themesData = {{{themes}}};</script>
+  <script>window.currentThemeId = '{{defaultThemeId}}';</script>
+  <script>window.formFieldsDefaults = {{{formFieldsDefaults}}};</script>
+  <script>window.portalSettings = {{{portalSettings}}};</script>
+  <script>window.i18n = window.i18n || {}; window.i18n.noTemplatesForTheme = "{{__ "form.no_templates_for_theme"}}";</script>
+
+  </div>
+
+  <!-- Tab 2: Document Editor -->
+  <div id="tab-editor" class="tab-panel">
+    <h1>{{__ "document_editor.title"}}</h1>
+
+    <div class="editor-sub-tab-bar">
+      <button class="editor-sub-tab active" data-subtab="subtab-text-tags">{{__ "document_editor.text_tags"}}</button>
+      <button class="editor-sub-tab" data-subtab="subtab-form-fields">{{__ "document_editor.form_fields"}}</button>
+    </div>
+
+    <!-- Sub-tab 1: Text Tags (existing editor) -->
+    <div id="subtab-text-tags" class="editor-sub-panel active">
+      <p style="color:#64748b; margin-bottom:16px;">
+        Edit the markdown below to create a custom document. Fields from Tab 1 are auto-populated using <code>\{{field}}</code> placeholders.
+        Dropbox Sign text tags (e.g. <code>[sig|req|signer1]</code>) become interactive signature fields.
+        To add an image, use <code>![alt text](/filename.png)</code> for a file in the public folder, or <code>![alt text](https://...)</code> for a remote URL (PNG/JPEG only).
+      </p>
+      <div style="margin-bottom:12px; display:flex; align-items:center; gap:12px;">
+        <button id="saveAsTemplateBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #16a34a; background:#16a34a; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "document_editor.save_as_template"}}</button>
+      </div>
+      <div class="editor-layout">
+        <div class="editor-pane">
+          <label for="markdownEditor" style="font-weight:600; margin-bottom:8px; display:block;">{{__ "document_editor.markdown_source"}}</label>
+          <textarea id="markdownEditor" name="markdownContent" spellcheck="false"></textarea>
+        </div>
+        <div class="preview-pane">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px;">
+            <label style="font-weight:600; margin:0;">{{__ "document_editor.live_preview"}}</label>
+            <label style="display:flex; align-items:center; gap:6px; font-weight:normal; font-size:0.9rem; cursor:pointer;">
+              <input type="checkbox" id="previewTagsCheckbox" data-tooltip="previewTagsCheckbox" style="cursor:pointer;" />
+              {{__ "document_editor.preview_tags"}}
+            </label>
+          </div>
+          <div id="markdownPreview" class="markdown-preview"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sub-tab 2: Form Fields editor -->
+    <div id="subtab-form-fields" class="editor-sub-panel">
+      <p style="color:#64748b; margin-bottom:16px;">
+        Position signature fields visually using the <code>form_fields_per_document</code> API parameter.
+        Adjust the sliders to move and resize each field — the overlay updates in real time.
+        These coordinates are sent directly to the Dropbox Sign API when you sign.
+      </p>
+      <div style="margin-bottom:12px; display:flex; align-items:center; gap:12px;">
+        <button id="loadFormFieldsPdfBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer;">Load Document Preview</button>
+        <select id="formFieldsPageSelect" data-tooltip="formFieldsPageSelect" style="padding:0.3rem 0.5rem; border-radius:6px; border:1px solid #cbd5e1; font-size:0.9rem;">
+          <option value="0">Page 1</option>
+        </select>
+        <button id="addFormFieldBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #16a34a; background:#16a34a; color:#fff; font-size:0.9rem; cursor:pointer;">+ Add Field</button>
+      </div>
+      <div class="ff-editor-layout">
+        <div class="ff-fields-panel">
+          <label style="font-weight:600; margin-bottom:8px; display:block;">Fields</label>
+          <div id="ffFieldsList"></div>
+          <div class="ff-payload-wrapper">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+              <label style="font-weight:600;">API Payload Preview</label>
+              <button id="ffSaveDefaultBtn" style="padding:2px 8px; border-radius:4px; border:1px solid #16a34a; background:#16a34a; color:#fff; font-size:11px; cursor:pointer;">Save as Default</button>
+              <button id="ffResetDefaultBtn" style="padding:2px 8px; border-radius:4px; border:1px solid #dc2626; background:#fff; color:#dc2626; font-size:11px; cursor:pointer;">Reset</button>
+            </div>
+            <textarea id="ffApiPayload" class="ff-payload-editor" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="ff-preview-panel">
+          <label style="font-weight:600; margin-bottom:8px; display:block;">Document Preview</label>
+          <div id="ffDocContainer" class="ff-doc-container">
+            <canvas id="ffPdfCanvas"></canvas>
+            <div id="ffOverlayLayer" class="ff-overlay-layer"></div>
+            <div class="ff-placeholder-msg" id="ffPlaceholderMsg">Click "Load Document Preview" to render the document</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Signature Status -->
+  <div id="tab-status" class="tab-panel">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <h1 style="margin:0;">{{__ "signature_status.title"}}</h1>
+      <span id="statusRefreshing" style="display:none; color:#64748b; font-size:0.85rem; font-style:italic;">{{__ "signature_status.refreshing"}}</span>
+      <select id="pageSizeSelect" data-tooltip="pageSizeSelect" style="padding:0.3rem 0.5rem; border-radius:6px; border:1px solid #cbd5e1; font-size:0.9rem;">
+        <option value="10">10 {{__ "signature_status.rows"}}</option>
+        <option value="25" selected>25 {{__ "signature_status.rows"}}</option>
+        <option value="50">50 {{__ "signature_status.rows"}}</option>
+        <option value="100">100 {{__ "signature_status.rows"}}</option>
+      </select>
+      <button id="downloadSelectedBtn" data-tooltip="downloadSelectedBtn" disabled style="padding:0.3rem 0.5rem; border-radius:6px; border:1px solid #16a34a; background:#16a34a; color:#fff; cursor:pointer; opacity:0.5; margin-right:0.5rem; display:inline-flex; align-items:center; justify-content:center; height:28px;" title="Download selected documents">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </button>
+      <button id="sendRemindersBtn" data-tooltip="sendRemindersBtn" disabled style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer; opacity:0.5; margin-right:0.5rem;">{{__ "signature_status.send_reminders"}}</button>
+      <button id="deleteSelectedBtn" data-tooltip="deleteSelectedBtn" disabled style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #dc2626; background:#dc2626; color:#fff; font-size:0.9rem; cursor:pointer; opacity:0.5;">{{__ "signature_status.delete"}}</button>
+    </div>
+    <p id="statusLoading" style="color:#64748b; font-style:italic;">{{__ "signature_status.loading"}}</p>
+    <p id="statusError" style="color:#dc2626; display:none;"></p>
+    <table id="signaturesTable" class="signatures-table" style="display:none;">
+      <thead>
+        <tr>
+          <th style="width:2rem;"><input type="checkbox" id="selectAllSigs" title="{{__ "signature_status.select_all"}}"></th>
+          <th>{{__ "signature_status.table.document_name"}}</th>
+          <th>{{__ "signature_status.table.sender"}}</th>
+          <th>{{__ "signature_status.table.progress"}}</th>
+          <th>{{__ "signature_status.table.metadata"}}</th>
+          <th>{{__ "signature_status.table.last_update"}}</th>
+        </tr>
+      </thead>
+      <tbody id="signaturesBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Tab 4: Templates -->
+  <div id="tab-templates" class="tab-panel">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <h1 style="margin:0;">{{__ "templates.title"}}</h1>
+      <select id="templatePageSize" style="padding:0.3rem 0.5rem; border-radius:6px; border:1px solid #cbd5e1; font-size:0.9rem;">
+        <option value="25" selected>25 {{__ "templates.rows"}}</option>
+        <option value="50">50 {{__ "templates.rows"}}</option>
+        <option value="100">100 {{__ "templates.rows"}}</option>
+      </select>
+      <button id="refreshTemplatesBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "templates.refresh"}}</button>
+      <input id="templateSearchInput" type="text" placeholder="{{__ "templates.search_placeholder"}}" style="padding:0.3rem 0.5rem; border-radius:6px; border:1px solid #cbd5e1; font-size:0.9rem; width:200px;" />
+      <button id="templateSearchBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "templates.apply"}}</button>
+      <button id="shareTemplatesBtn" data-tooltip="shareTemplatesBtn" disabled style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "templates.share"}}</button>
+      <button id="deleteTemplatesBtn" disabled style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #dc2626; background:#dc2626; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "templates.delete"}}</button>
+    </div>
+    <p style="color:#64748b; margin-bottom:12px; margin-top:8px;">
+      {{{__ "templates.description"}}}
+    </p>
+    <p id="templatesLoading" style="color:#64748b; font-style:italic;">{{__ "templates.loading"}}</p>
+    <p id="templatesError" style="color:#dc2626; display:none;"></p>
+    <table id="templatesTable" class="signatures-table templates-table" style="display:none;">
+      <thead>
+        <tr>
+          <th style="width: 40px; text-align: center;">
+            <input type="checkbox" id="selectAllTemplates" title="{{__ "templates.select_all"}}">
+          </th>
+          <th>{{__ "templates.table.template_name"}}</th>
+          <th>{{__ "templates.table.template_id"}}</th>
+          <th>{{__ "templates.table.created_by"}}</th>
+          <th>{{__ "templates.table.signers"}}</th>
+          <th>{{__ "templates.table.roles"}}</th>
+          <th>{{__ "templates.table.current_labels"}}</th>
+          <th>{{__ "templates.table.metadata"}}</th>
+          <th>{{__ "templates.table.assign_labels"}}</th>
+          <th style="width:80px;">{{__ "templates.table.actions"}}</th>
+        </tr>
+      </thead>
+      <tbody id="templatesBody"></tbody>
+    </table>
+
+    <!-- Template Sharing Modal -->
+    <div id="shareTemplateModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 24px; border-radius: 8px; width: 550px; max-width: 90vw;">
+        <h3 style="margin: 0 0 16px 0;">Share Templates</h3>
+
+        <!-- Warning about limitations -->
+        <div style="margin-bottom: 16px; padding: 12px; background: #fef3c7; border: 1px solid #fbbf24; border-radius: 4px; font-size: 13px;">
+          <strong>⚠️ Template Sharing Limitations:</strong>
+          <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+            <li>Can only share with users on the <strong>same team</strong></li>
+            <li>Sub-team members cannot receive shares (unless you're a global admin)</li>
+            <li>Users must already be team members before sharing</li>
+          </ul>
+          <div id="shareUserRoleInfo" style="margin-top: 8px; font-size: 12px; color: #92400e;"></div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label>Share with:</label>
+          <select id="shareTargetType" style="width: 100%; padding: 8px; margin-top: 4px;">
+            <option value="">-- Select option --</option>
+            <option value="emails">Team Members (enter emails)</option>
+          </select>
+        </div>
+        <div id="shareTargetSelector" style="margin-bottom: 16px; display: none;">
+          <label id="shareTargetLabel">Enter email addresses (one per line):</label>
+          <textarea id="shareEmailsInput" rows="5" style="width: 100%; padding: 8px; margin-top: 4px; font-family: monospace; font-size: 13px;" placeholder="user1@dropbox.com&#10;user2@dropbox.com&#10;user3@dropbox.com"></textarea>
+          <small style="color: #64748b;">Enter one email address per line. Users must be on your team.</small>
+        </div>
+        <div style="margin-bottom: 16px;">
+          <label>
+            <input type="checkbox" id="skipNotification">
+            Skip email notification
+          </label>
+        </div>
+        <div id="shareModalStatus" style="margin-bottom: 16px; padding: 8px; border-radius: 4px; display: none;"></div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button id="cancelShareBtn" style="padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+          <button id="confirmShareBtn" disabled style="padding: 8px 16px; border: 1px solid #2563eb; background: #2563eb; color: white; border-radius: 4px; cursor: pointer;">Share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 5: API Apps -->
+  <div id="tab-apps" class="tab-panel">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <h1 style="margin:0;">{{__ "api_apps.title"}}</h1>
+      <button id="refreshAppsBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "api_apps.refresh"}}</button>
+      <button id="saveAppsBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #16a34a; background:#16a34a; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "api_apps.save"}}</button>
+      <button id="deleteAppsBtn" disabled style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #dc2626; background:#dc2626; color:#fff; font-size:0.9rem; cursor:not-allowed; opacity:0.5;">{{__ "api_apps.delete"}}</button>
+    </div>
+    <p style="color:#64748b; margin-bottom:12px; margin-top:8px;">
+      {{__ "api_apps.description"}}
+    </p>
+    <p id="appsLoading" style="color:#64748b; font-style:italic;">{{__ "api_apps.loading"}}</p>
+    <p id="appsError" style="color:#dc2626; display:none;"></p>
+    <table id="appsTable" class="signatures-table" style="display:none;">
+      <thead>
+        <tr>
+          <th style="width:2.5rem;"></th>
+          <th style="width:2.5rem;">{{__ "api_apps.table.visible"}}</th>
+          <th style="width:2.5rem;">{{__ "api_apps.table.test_mode"}}</th>
+          <th style="width:2.5rem;" title="Enable webhook callbacks for this API app">{{__ "api_apps.table.enable_callbacks"}}</th>
+          <th style="width:2.5rem;" title="Mark apps for deletion">{{__ "api_apps.table.delete"}}</th>
+          <th>{{__ "api_apps.table.app_name"}}</th>
+          <th>{{__ "api_apps.table.client_id"}}</th>
+          <th>{{__ "api_apps.table.owner"}}</th>
+          <th>{{__ "api_apps.table.domain"}}</th>
+          <th>{{__ "api_apps.table.callback_url"}}</th>
+          <th>{{__ "api_apps.table.status"}}</th>
+          <th>{{__ "api_apps.table.permissions"}}</th>
+        </tr>
+      </thead>
+      <tbody id="appsBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Tab 6: API Logs -->
+  <div id="tab-api-logs" class="tab-panel">
+    <div style="display:flex; align-items:center; gap:1rem;">
+      <h1 style="margin:0;">{{__ "api_logs.title"}}</h1>
+      <button id="refreshLogsBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "api_logs.refresh"}}</button>
+      <button id="clearLogsBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #dc2626; background:#dc2626; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "api_logs.clear"}}</button>
+      <label style="display:flex; align-items:center; gap:6px; margin-left:16px; font-size:0.9rem; cursor:pointer;">
+        <input id="showLogsOnAllScreens" type="checkbox" data-tooltip="showLogsOnAllScreens" style="width:16px; height:16px; cursor:pointer;" />
+        {{__ "api_logs.show_on_all_screens"}}
+      </label>
+    </div>
+    <p id="logsLoading" style="color:#64748b; font-style:italic;">Click to load API logs...</p>
+    <p id="logsError" style="color:#dc2626; display:none;"></p>
+    <div id="logsContainer" style="display:none; margin-top:16px;"></div>
+  </div>
+
+  <!-- Tab 7: Team -->
+  <div id="tab-team" class="tab-panel">
+    <h1>{{__ "team.title"}}</h1>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <p style="color:#64748b;">{{__ "team.description"}}</p>
+      <div style="display:flex; gap:8px;">
+        <button id="collapseAllTeamsBtn" data-tooltip="collapseAllTeamsBtn" class="log-toggle-btn">{{__ "team.collapse_all"}}</button>
+        <button id="refreshTeamBtn" data-tooltip="refreshBtn" class="log-toggle-btn">{{__ "team.refresh"}}</button>
+      </div>
+    </div>
+    <div id="teamLoading" style="display:none; color:#64748b; font-style:italic;">{{__ "team.loading"}}</div>
+    <div id="teamError" style="display:none; color:#dc2626;"></div>
+    <div id="teamChart" data-tooltip="teamHierarchy"></div>
+    <div id="teamMembersList" style="margin-top:24px;"></div>
+  </div>
+
+  <!-- Tab 8: Settings -->
+  <div id="tab-settings" class="tab-panel">
+    <h1>{{__ "settings.title"}}</h1>
+
+    <div class="editor-sub-tab-bar">
+      <button class="editor-sub-tab active" data-subtab="subtab-settings-general">{{__ "settings.tab.general"}}</button>
+      <button class="editor-sub-tab" data-subtab="subtab-settings-themes">{{__ "settings.tab.themes"}}</button>
+    </div>
+
+    <!-- Sub-tab 1: General Settings -->
+    <div id="subtab-settings-general" class="editor-sub-panel active">
+      <p style="color:#64748b; margin-bottom:20px;">{{__ "settings.description"}}</p>
+
+      <div class="settings-section">
+        <h2 style="font-size:1.1rem; margin-bottom:12px;">{{__ "settings.language.title"}}</h2>
+        <p style="color:#64748b; margin-bottom:12px; font-size:14px;">{{__ "settings.language.description"}}</p>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <button class="language-selector-btn {{#if (eq locale 'en')}}active{{/if}}" data-locale="en" style="padding:8px 16px; border:2px solid #e2e8f0; border-radius:6px; background:{{#if (eq locale 'en')}}#6366f1{{else}}white{{/if}}; color:{{#if (eq locale 'en')}}white{{else}}#64748b{{/if}}; cursor:pointer; font-size:14px; font-weight:500; transition:all 0.2s;">
+            English
+          </button>
+          <button class="language-selector-btn {{#if (eq locale 'es')}}active{{/if}}" data-locale="es" style="padding:8px 16px; border:2px solid #e2e8f0; border-radius:6px; background:{{#if (eq locale 'es')}}#6366f1{{else}}white{{/if}}; color:{{#if (eq locale 'es')}}white{{else}}#64748b{{/if}}; cursor:pointer; font-size:14px; font-weight:500; transition:all 0.2s;">
+            Español
+          </button>
+          <button class="language-selector-btn {{#if (eq locale 'ja')}}active{{/if}}" data-locale="ja" style="padding:8px 16px; border:2px solid #e2e8f0; border-radius:6px; background:{{#if (eq locale 'ja')}}#6366f1{{else}}white{{/if}}; color:{{#if (eq locale 'ja')}}white{{else}}#64748b{{/if}}; cursor:pointer; font-size:14px; font-weight:500; transition:all 0.2s;">
+            日本語
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2 style="font-size:1.1rem; margin-bottom:12px;">{{__ "settings.embedded_signing.title"}}</h2>
+        <label class="settings-toggle">
+          <input id="settingFullscreenSigning" type="checkbox" data-tooltip="settingFullscreenSigning" />
+          <span class="settings-toggle-label">{{__ "settings.embedded_signing.fullscreen_label"}}</span>
+          <span class="settings-toggle-desc">{{__ "settings.embedded_signing.fullscreen_desc"}}</span>
+        </label>
+      </div>
+
+      <div class="settings-section">
+        <h2 style="font-size:1.1rem; margin-bottom:12px;">{{__ "settings.sms_delivery.title"}}</h2>
+        <label class="settings-toggle">
+          <input id="settingSmsDeliveryEnabled" type="checkbox" data-tooltip="settingSmsDeliveryEnabled" />
+          <span class="settings-toggle-label">{{__ "settings.sms_delivery.show_option_label"}}</span>
+          <span class="settings-toggle-desc">{{__ "settings.sms_delivery.show_option_desc"}}</span>
+        </label>
+      </div>
+
+      <div class="settings-section">
+        <h2 style="font-size:1.1rem; margin-bottom:12px;">{{__ "settings.text_tags.title"}}</h2>
+        <label class="settings-toggle">
+          <input id="settingLogoOnTextTags" type="checkbox" data-tooltip="settingLogoOnTextTags" checked />
+          <span class="settings-toggle-label">{{__ "settings.text_tags.show_logo_label"}}</span>
+          <span class="settings-toggle-desc">{{__ "settings.text_tags.show_logo_desc"}}</span>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- Sub-tab 2: Theme Management -->
+    <div id="subtab-settings-themes" class="editor-sub-panel">
+      <p style="color:#64748b; margin-bottom:20px;">{{__ "settings.themes.description"}}</p>
+
+      <div class="settings-section">
+        <!-- Table View -->
+        <div id="themesTableView">
+          <div style="display:flex; align-items:center; gap:1rem; margin-bottom:12px;">
+            <h2 style="font-size:1.1rem; margin:0;">{{__ "settings.themes.title"}}</h2>
+            <button id="refreshThemesBtn" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #2563eb; background:#2563eb; color:#fff; font-size:0.9rem; cursor:pointer;">{{__ "settings.themes.refresh"}}</button>
+          </div>
+          <p style="color:#64748b; margin-bottom:12px; font-size:14px;">
+            {{__ "settings.themes.subtitle"}}
+          </p>
+          <p id="themesLoading" style="color:#64748b; font-style:italic; font-size:14px;">{{__ "settings.themes.loading"}}</p>
+          <p id="themesError" style="color:#dc2626; display:none; font-size:14px;"></p>
+          <table id="themesTable" class="signatures-table" style="display:none;">
+            <thead>
+              <tr>
+                <th style="width:2.5rem;"></th>
+                <th>{{__ "settings.themes.table.theme_id"}}</th>
+                <th>{{__ "settings.themes.table.name"}}</th>
+                <th>{{__ "settings.themes.table.page_title"}}</th>
+                <th>{{__ "settings.themes.table.tab_label"}}</th>
+                <th>{{__ "settings.themes.table.attached_templates"}}</th>
+              </tr>
+            </thead>
+            <tbody id="themesBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Inline Editor View -->
+        <div id="inlineThemeEditor" style="display:none;">
+          <div style="display:flex; align-items:center; gap:1rem; margin-bottom:20px;">
+            <button id="backToThemesTable" style="padding:0.3rem 0.8rem; border-radius:6px; border:1px solid #64748b; background:white; color:#64748b; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; gap:6px;">
+              ← Back to Themes
+            </button>
+            <h2 style="font-size:1.1rem; margin:0;">Edit Theme: <span id="inlineThemeTitle">Theme Name</span></h2>
+          </div>
+
+          <!-- Basic Info -->
+          <div style="background:#f8fafc; padding:12px; border-radius:6px; margin-bottom:16px;">
+            <h3 style="margin:0 0 10px 0; font-size:14px; color:#1a1a1a; font-weight:600;">Basic Information</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div>
+                <label style="display:block; font-weight:500; margin-bottom:4px; font-size:13px; color:#64748b;">Theme Name</label>
+                <input type="text" id="inline-theme-name" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; font-size:15px;">
+              </div>
+              <div>
+                <label style="display:block; font-weight:500; margin-bottom:4px; font-size:13px; color:#64748b;">Page Title</label>
+                <input type="text" id="inline-page-title" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; font-size:15px;">
+              </div>
+              <div>
+                <label style="display:block; font-weight:500; margin-bottom:4px; font-size:13px; color:#64748b;">Tab Label</label>
+                <input type="text" id="inline-tab-label" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; font-size:15px;">
+              </div>
+              <div>
+                <label style="display:block; font-weight:500; margin-bottom:4px; font-size:13px; color:#64748b;">Document Template</label>
+                <input type="text" id="inline-doc-template" style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; font-size:15px;" placeholder="template-id">
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Form Preview -->
+          <h3 style="margin:0 0 8px 0; font-size:14px; color:#1a1a1a; font-weight:600;">Form Preview <span style="font-weight:normal; font-size:12px; color:#64748b;">- Click any field to edit</span></h3>
+          <div style="border:2px solid #e2e8f0; border-radius:6px; padding:4px; background:white; margin-bottom:16px; box-sizing:border-box;">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+              <!-- Left Pane -->
+              <div style="border:1px solid #e2e8f0; border-radius:4px; padding:8px; background:#fafbfc; box-sizing:border-box; overflow:hidden;">
+                <h4 class="inline-editable" data-field="left-title" style="margin:0 0 8px 0; font-size:15px; cursor:pointer; padding:4px; border-radius:4px; position:relative; font-weight:600;">
+                  <span class="inline-value">Client Details</span>
+                  <span class="inline-icon" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:11px;">✏️</span>
+                </h4>
+                <div style="margin-bottom:8px;">
+                  <label class="inline-editable" data-field="name-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:3px; border-radius:3px; font-size:13px; position:relative;">
+                    <span class="inline-value">Name</span>
+                    <span class="inline-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:10px;">✏️</span>
+                  </label>
+                  <input type="text" class="inline-editable" data-field="name-default" placeholder="Default value..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:15px; box-sizing:border-box;" readonly>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <label class="inline-editable" data-field="email-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:3px; border-radius:3px; font-size:13px; position:relative;">
+                    <span class="inline-value">Email</span>
+                    <span class="inline-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:10px;">✏️</span>
+                  </label>
+                  <input type="text" class="inline-editable" data-field="email-default" placeholder="Default value..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:15px; box-sizing:border-box;" readonly>
+                </div>
+                <div style="border-top:1px dashed #cbd5e1; padding-top:6px; margin-top:6px;">
+                  <div style="font-size:11px; color:#64748b; margin-bottom:5px; font-weight:600;">Second Signer (Optional)</div>
+                  <div style="margin-bottom:5px;">
+                    <label class="inline-editable" data-field="second-name-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:3px; border-radius:3px; font-size:13px; position:relative;">
+                      <span class="inline-value">Name</span>
+                      <span class="inline-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:10px;">✏️</span>
+                    </label>
+                    <input type="text" class="inline-editable" data-field="second-name" placeholder="Default value..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; font-size:15px; cursor:pointer; box-sizing:border-box;" readonly>
+                  </div>
+                  <div>
+                    <label class="inline-editable" data-field="second-email-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:3px; border-radius:3px; font-size:13px; position:relative;">
+                      <span class="inline-value">Email</span>
+                      <span class="inline-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:10px;">✏️</span>
+                    </label>
+                    <input type="text" class="inline-editable" data-field="second-email" placeholder="Default value..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; font-size:15px; cursor:pointer; box-sizing:border-box;" readonly>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Pane -->
+              <div style="border:1px solid #e2e8f0; border-radius:4px; padding:8px; background:#fafbfc; box-sizing:border-box; overflow:hidden;">
+                <h4 class="inline-editable" data-field="right-title" style="margin:0 0 8px 0; font-size:15px; cursor:pointer; padding:4px; border-radius:4px; position:relative; font-weight:600;">
+                  <span class="inline-value">Details</span>
+                  <span class="inline-icon" style="position:absolute; right:3px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:11px;">✏️</span>
+                </h4>
+                <div style="margin-bottom:8px;">
+                  <label class="inline-editable" data-field="field1-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:3px; border-radius:3px; font-size:13px; position:relative;">
+                    <span class="inline-value">Field 1</span>
+                    <span class="inline-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:10px;">✏️</span>
+                  </label>
+                  <input type="text" class="inline-editable" data-field="field1-default" placeholder="Default value..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:15px; box-sizing:border-box;" readonly>
+                </div>
+                <div style="margin-bottom:8px;">
+                  <label class="inline-editable" data-field="field2-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:3px; border-radius:3px; font-size:13px; position:relative;">
+                    <span class="inline-value">Field 2</span>
+                    <span class="inline-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:10px;">✏️</span>
+                  </label>
+                  <input type="text" class="inline-editable" data-field="field2-default" placeholder="Default value..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:15px; box-sizing:border-box;" readonly>
+                </div>
+                <div>
+                  <label class="inline-editable" data-field="field3-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:3px; border-radius:3px; font-size:13px; position:relative;">
+                    <span class="inline-value">Field 3</span>
+                    <span class="inline-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:10px;">✏️</span>
+                  </label>
+                  <input type="text" class="inline-editable" data-field="field3-default" placeholder="Default value..." style="width:100%; padding:10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:15px; box-sizing:border-box;" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <button id="cancelInlineThemeEditor" style="padding:8px 18px; background:#e2e8f0; color:#475569; border:none; border-radius:4px; font-weight:500; cursor:pointer; font-size:13px;">Cancel</button>
+            <button id="saveInlineThemeEditor" style="padding:8px 18px; background:#2563eb; color:white; border:none; border-radius:4px; font-weight:500; cursor:pointer; font-size:13px;">Save Theme</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Embedded signing/template editor modal (outside tabs so it's always visible) -->
+<div id="signingOverlay" class="signing-overlay" style="display:none;">
+  <button class="signing-close-btn" id="signingCloseBtn" title="Close signing window">&#10005;</button>
+  <div id="signingContainer" class="signing-modal"></div>
+</div>
+
+<!-- Side Panel: API Log (shown when "Show on all screens" is checked) -->
+<div id="apiLogSidePanel" class="api-log-side-panel" style="display:none;">
+  <div class="side-panel-header">
+    <h3 style="margin:0; font-size:16px; color:#102a43;">API Log</h3>
+    <div style="display:flex; gap:6px;">
+      <button id="sidePanelRefreshBtn" class="log-toggle-btn">Refresh</button>
+      <button id="sidePanelClearBtn" class="log-toggle-btn" style="color:#dc2626; border-color:#dc2626;">Clear</button>
+    </div>
+  </div>
+  <div id="sidePanelLogsContainer" class="side-panel-logs"></div>
+</div>
+
+<!-- Toast Container for webhook notifications -->
+<div id="toastContainer"></div>
+
+<!-- Visual Theme Editor Modal -->
+<div id="visualThemeEditorModal" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:2000; overflow-y:auto; padding:20px;">
+  <div style="max-width:1200px; margin:0 auto; background:white; border-radius:12px; padding:32px; position:relative;">
+    <button id="closeVisualThemeEditor" style="position:absolute; top:16px; right:16px; background:none; border:none; font-size:28px; cursor:pointer; color:#64748b; width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:6px;" title="Close">&times;</button>
+
+    <h2 style="margin:0 0 24px 0; color:#1a1a1a;">Edit Theme: <span id="modalThemeTitle">Theme Name</span></h2>
+
+    <!--Basic Info -->
+    <div style="background:#f8fafc; padding:20px; border-radius:8px; margin-bottom:24px;">
+      <h3 style="margin:0 0 16px 0; font-size:16px; color:#1a1a1a;">Basic Information</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+        <div>
+          <label style="display:block; font-weight:500; margin-bottom:6px; font-size:14px;">Theme Name</label>
+          <input type="text" id="vte-theme-name" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px;">
+        </div>
+        <div>
+          <label style="display:block; font-weight:500; margin-bottom:6px; font-size:14px;">Page Title</label>
+          <input type="text" id="vte-page-title" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px;">
+        </div>
+        <div>
+          <label style="display:block; font-weight:500; margin-bottom:6px; font-size:14px;">Tab Label</label>
+          <input type="text" id="vte-tab-label" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px;">
+        </div>
+        <div>
+          <label style="display:block; font-weight:500; margin-bottom:6px; font-size:14px;">Document Template</label>
+          <input type="text" id="vte-doc-template" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:14px;" placeholder="template-id">
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Form Preview -->
+    <h3 style="margin:0 0 12px 0; font-size:16px; color:#1a1a1a;">Form Preview <span style="font-weight:normal; font-size:13px; color:#64748b;">- Click any field to edit</span></h3>
+    <div style="border:2px solid #e2e8f0; border-radius:8px; padding:24px; background:white; margin-bottom:24px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:20px;">
+        <!-- Left Pane -->
+        <div style="border:1px solid #e2e8f0; border-radius:6px; padding:16px; background:#fafbfc;">
+          <h4 class="vte-editable" data-field="left-title" style="margin:0 0 16px 0; font-size:15px; cursor:pointer; padding:6px; border-radius:4px; position:relative;">
+            <span class="vte-value">Client Details</span>
+            <span class="vte-icon" style="position:absolute; right:4px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s;">✏️</span>
+          </h4>
+          <div style="margin-bottom:12px;">
+            <label class="vte-editable" data-field="name-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:4px; border-radius:4px; font-size:13px; position:relative;">
+              <span class="vte-value">Name</span>
+              <span class="vte-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:11px;">✏️</span>
+            </label>
+            <input type="text" class="vte-editable" data-field="name-default" placeholder="Default value..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:13px;" readonly>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="vte-editable" data-field="email-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:4px; border-radius:4px; font-size:13px; position:relative;">
+              <span class="vte-value">Email</span>
+              <span class="vte-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:11px;">✏️</span>
+            </label>
+            <input type="text" class="vte-editable" data-field="email-default" placeholder="Default value..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:13px;" readonly>
+          </div>
+          <div style="border-top:1px dashed #cbd5e1; padding-top:12px; margin-top:12px;">
+            <div style="font-size:11px; color:#64748b; margin-bottom:8px; font-weight:600;">Second Signer (Optional)</div>
+            <div style="margin-bottom:6px;">
+              <input type="text" class="vte-editable" data-field="second-name" placeholder="Name..." style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; cursor:pointer;" readonly>
+            </div>
+            <div>
+              <input type="text" class="vte-editable" data-field="second-email" placeholder="Email..." style="width:100%; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px; font-size:12px; cursor:pointer;" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Pane -->
+        <div style="border:1px solid #e2e8f0; border-radius:6px; padding:16px; background:#fafbfc;">
+          <h4 class="vte-editable" data-field="right-title" style="margin:0 0 16px 0; font-size:15px; cursor:pointer; padding:6px; border-radius:4px; position:relative;">
+            <span class="vte-value">Details</span>
+            <span class="vte-icon" style="position:absolute; right:4px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s;">✏️</span>
+          </h4>
+          <div style="margin-bottom:12px;">
+            <label class="vte-editable" data-field="field1-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:4px; border-radius:4px; font-size:13px; position:relative;">
+              <span class="vte-value">Field 1</span>
+              <span class="vte-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:11px;">✏️</span>
+            </label>
+            <input type="text" class="vte-editable" data-field="field1-default" placeholder="Default value..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:13px;" readonly>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="vte-editable" data-field="field2-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:4px; border-radius:4px; font-size:13px; position:relative;">
+              <span class="vte-value">Field 2</span>
+              <span class="vte-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:11px;">✏️</span>
+            </label>
+            <input type="text" class="vte-editable" data-field="field2-default" placeholder="Default value..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:13px;" readonly>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label class="vte-editable" data-field="field3-label" style="display:block; font-weight:500; margin-bottom:4px; cursor:pointer; padding:4px; border-radius:4px; font-size:13px; position:relative;">
+              <span class="vte-value">Field 3</span>
+              <span class="vte-icon" style="position:absolute; right:2px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:11px;">✏️</span>
+            </label>
+            <input type="text" class="vte-editable" data-field="field3-default" placeholder="Default value..." style="width:100%; padding:6px 10px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; font-size:13px;" readonly>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display:flex; gap:12px; border-top:1px solid #e2e8f0; padding-top:16px;">
+        <button class="vte-editable" data-field="send-btn" style="flex:1; padding:10px 16px; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; font-size:14px; position:relative;">
+          <span class="vte-value">Send for Signature</span>
+          <span class="vte-icon" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:12px;">✏️</span>
+        </button>
+        <button class="vte-editable" data-field="preview-btn" style="flex:1; padding:10px 16px; background:#64748b; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; font-size:14px; position:relative;">
+          <span class="vte-value">Preview</span>
+          <span class="vte-icon" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:12px;">✏️</span>
+        </button>
+        <button class="vte-editable" data-field="embed-btn" style="flex:1; padding:10px 16px; background:#10b981; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; font-size:14px; position:relative;">
+          <span class="vte-value">View & Sign</span>
+          <span class="vte-icon" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); opacity:0; transition:opacity 0.2s; font-size:12px;">✏️</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div style="display:flex; justify-content:flex-end; gap:12px;">
+      <button id="cancelVisualThemeEditor" style="padding:10px 24px; background:#e2e8f0; color:#475569; border:none; border-radius:6px; font-weight:500; cursor:pointer; font-size:14px;">Cancel</button>
+      <button id="saveVisualThemeEditor" style="padding:10px 24px; background:#2563eb; color:white; border:none; border-radius:6px; font-weight:500; cursor:pointer; font-size:14px;">Save Theme</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- External JavaScript modules -->
+<script src="/error-logger.js"></script>
+<script src="/console-logger.js"></script>
+<script src="/toast.js"></script>
+<script src="/team.js"></script>
+<script src="/tooltip.js"></script>
+
+<!-- Language Selector -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const languageButtons = document.querySelectorAll('.language-selector-btn');
+    console.log('[Language Selector] Found buttons:', languageButtons.length);
+
+    languageButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const locale = btn.dataset.locale;
+        console.log('[Language Selector] Button clicked, locale:', locale);
+
+        try {
+          console.log('[Language Selector] Sending POST to /settings/locale with:', { locale });
+          const response = await fetch('/settings/locale', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ locale })
+          });
+
+          console.log('[Language Selector] Response status:', response.status);
+          const data = await response.json();
+          console.log('[Language Selector] Response data:', data);
+
+          if (data.success) {
+            console.log('[Language Selector] Success! Reloading page...');
+            // Reload page to apply new language
+            window.location.reload();
+          } else {
+            console.error('[Language Selector] Failed:', data);
+            showErrorToast(t('toast.error.failed'));
+          }
+        } catch (error) {
+          console.error('[Language Selector] Error:', error);
+          showErrorToast(t('toast.error.network'));
+        }
+      });
+    });
+  });
+</script>
