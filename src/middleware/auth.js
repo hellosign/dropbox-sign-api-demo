@@ -48,7 +48,12 @@ export function requireAuth(req, res, next) {
  */
 export function requireSession(req, res, next) {
   if (!req.session.accountInfo) {
-    return res.status(401).json({ error: 'Not authenticated.' });
+    const fullPath = req.originalUrl || req.path;
+    const isAjax = req.xhr || req.headers.accept?.includes('application/json');
+    if (isAjax || fullPath.startsWith('/api') || fullPath.startsWith('/events/') || fullPath.startsWith('/admin')) {
+      return res.status(401).json({ error: 'Not authenticated.' });
+    }
+    return res.redirect('/login');
   }
   initSessionData(req.session);
   req.session.lastActivity = new Date().toISOString();
