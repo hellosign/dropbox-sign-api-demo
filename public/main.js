@@ -25,10 +25,20 @@ async function fetchWithCsrf(url, options = {}) {
     }
   }
 
-  return fetch(url, {
+  // Prevent fetch from following redirects (e.g., to /login on session expiry)
+  const response = await fetch(url, {
     ...options,
-    headers
+    headers,
+    redirect: 'manual'
   });
+
+  // Handle session expiry (401 or opaque redirect to login)
+  if (response.status === 401 || response.type === 'opaqueredirect') {
+    window.location.href = '/login';
+    throw new Error('Session expired. Redirecting to login.');
+  }
+
+  return response;
 }
 
 document.addEventListener('DOMContentLoaded', () => {

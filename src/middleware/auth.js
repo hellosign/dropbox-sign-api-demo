@@ -10,9 +10,12 @@ export function requireAuth(req, res, next) {
   if (VERBOSE_LOGGING) console.log('[AUTH] Path:', req.path, '| Has session:', !!req.session, '| Has API key:', !!req.session?.apiKey);
 
   if (!req.session.apiKey) {
-    if (VERBOSE_LOGGING) console.log('[AUTH] No API key found, path starts with /api?', req.path.startsWith('/api'));
-    // For API requests (AJAX) and SSE streams, return 401 instead of redirect
-    if (req.path.startsWith('/api') || req.path.startsWith('/events/')) {
+    // Use originalUrl for path checks (req.path is relative to router mount point)
+    const fullPath = req.originalUrl || req.path;
+    const isAjax = req.xhr || req.headers.accept?.includes('application/json');
+    if (VERBOSE_LOGGING) console.log('[AUTH] No API key found, fullPath:', fullPath, '| isAjax:', isAjax);
+    // For API requests (AJAX), fetch calls, and SSE streams, return 401 instead of redirect
+    if (isAjax || fullPath.startsWith('/api') || fullPath.startsWith('/events/') || fullPath.startsWith('/themes') || fullPath.startsWith('/signatures') || fullPath.startsWith('/settings')) {
       if (VERBOSE_LOGGING) console.log('[AUTH] Returning 401 JSON');
       return res.status(401).json({ error: 'Not authenticated. Please provide API key.' });
     }

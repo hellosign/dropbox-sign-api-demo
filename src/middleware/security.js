@@ -21,6 +21,7 @@ export const helmetMiddleware = helmet({
       childSrc: ["'self'", "https://app.hellosign.com", "https://app.dropboxsign.com"],
     },
   },
+  hsts: IS_PRODUCTION,
   crossOriginEmbedderPolicy: false, // Allow embedded signing iframe
 });
 
