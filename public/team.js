@@ -8,6 +8,13 @@
   const teamTab = document.getElementById('tab-team');
   if (!teamTab) return;
 
+  function teamFetch(url, options = {}) {
+    const headers = options.headers || {};
+    const apiKey = sessionStorage.getItem('dbxSignApiKey');
+    if (apiKey) headers['x-api-key'] = apiKey;
+    return fetch(url, { ...options, headers });
+  }
+
   // Module state
   let teamData = null;
   let selectedTeamId = null;
@@ -32,7 +39,7 @@
     teamMembersList.innerHTML = '';
 
     try {
-      const res = await fetch('/api/team/debug');
+      const res = await teamFetch('/api/team/debug');
       const data = await res.json();
 
       if (!res.ok) {
@@ -234,7 +241,7 @@
 
     // First time expanding - fetch and cache children
     try {
-      const res = await fetch(`/api/team/${teamId}/sub_teams`);
+      const res = await teamFetch(`/api/team/${teamId}/sub_teams`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -361,7 +368,7 @@
    */
   async function checkForChildren(teamId, card) {
     try {
-      const res = await fetch(`/api/team/${teamId}/sub_teams`);
+      const res = await teamFetch(`/api/team/${teamId}/sub_teams`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -385,7 +392,7 @@
    */
   async function loadMemberCount(teamId, card) {
     try {
-      const res = await fetch(`/api/team/${teamId}/members`);
+      const res = await teamFetch(`/api/team/${teamId}/members`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -417,7 +424,7 @@
     teamMembersList.innerHTML = '<p style="color:#64748b;font-style:italic;">Loading members...</p>';
 
     try {
-      const res = await fetch(`/api/team/${teamId}/members`);
+      const res = await teamFetch(`/api/team/${teamId}/members`);
       const data = await res.json();
 
       if (!res.ok) {

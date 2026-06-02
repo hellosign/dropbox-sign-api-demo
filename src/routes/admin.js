@@ -348,9 +348,9 @@ router.delete('/api/users/:accountId', requireSession, requireAdmin, async (req,
 
 /**
  * GET /admin/api/console-logging - Get console logging settings
- * Note: Uses requireAuth (not requireAdmin) so all users can check if logging is enabled
+ * Note: Uses requireSession (not requireAdmin) so all users can check if logging is enabled
  */
-router.get('/api/console-logging', requireAuth, async (req, res) => {
+router.get('/api/console-logging', requireSession, async (req, res) => {
   const { redisClient } = req.app.locals;
 
   try {

@@ -57,7 +57,7 @@ import { loadWebhookEvents, saveWebhookEvents, recordEvent, loadWarnings, saveWa
 import { generatePdfFromMarkdown } from './src/services/pdf-generator.js';
 import { initSecurityLogger, logSecurityEvent, getSecurityEvents, getSecurityStats, blockIP, isIPBlocked } from './src/services/security-logger.js';
 // Middleware imports
-import { requireAuth, requireAdmin, initSessionData } from './src/middleware/auth.js';
+import { requireAuth, requireSession, requireAdmin, initSessionData } from './src/middleware/auth.js';
 import { authLimiter, apiLimiter, strictLimiter } from './src/middleware/rate-limit.js';
 import { helmetMiddleware, httpsRedirect, generateCsrfToken, csrfProtection as doubleCsrfProtection } from './src/middleware/security.js';
 import { i18nMiddleware } from './src/middleware/i18n.js';
@@ -1958,7 +1958,7 @@ app.post('/api/log-console', express.json(), async (req, res) => {
 // Public API: Tooltip Configuration
 // GET /api/tooltips/config - Get tooltip configuration for frontend
 //
-app.get('/api/tooltips/config', requireAuth, async (req, res) => {
+app.get('/api/tooltips/config', requireSession, async (req, res) => {
   try {
     let data;
 

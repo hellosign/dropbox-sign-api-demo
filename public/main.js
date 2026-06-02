@@ -611,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (const id of ids) {
       try {
-        const response = await fetch(`/signatures/download/${id}`);
+        const response = await fetchWithCsrf(`/signatures/download/${id}`);
 
         if (!response.ok) {
           failCount++;
@@ -837,7 +837,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Get current user's email to check ownership
     let currentUserEmail = '';
     try {
-      const authRes = await fetch('/auth/status');
+      const authRes = await fetchWithCsrf('/auth/status');
       const authData = await authRes.json();
       currentUserEmail = authData.email?.toLowerCase() || '';
     } catch (err) {
@@ -1074,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function fetchSignatures(pageSize) {
-    return fetch(`/signatures?pageSize=${pageSize}`)
+    return fetchWithCsrf(`/signatures?pageSize=${pageSize}`)
       .then((res) => {
         if (res.status === 429) { showWarningToast('API rate limited — retrying...'); throw new Error('Rate limited'); }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1182,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Add force parameter to URL to bypass server cache
     const forceParam = force ? '&force=true' : '';
-    return fetch(`/api-templates?pageSize=${templatePageSizeValue}${forceParam}`)
+    return fetchWithCsrf(`/api-templates?pageSize=${templatePageSizeValue}${forceParam}`)
       .then(res => {
         if (res.status === 429) { showWarningToast('API rate limited loading templates — retrying...'); throw new Error('Rate limited'); }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -1290,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyTheme(selectedThemeId);
 
     // Save the selected theme to settings
-    fetch('/settings/selected-theme', {
+    fetchWithCsrf('/settings/selected-theme', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ themeId: selectedThemeId })
@@ -1302,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadAppsOnce(force) {
     if (appsLoaded && !force) return Promise.resolve(allApps);
-    return fetch('/api-apps' + (force ? '?force=1' : ''))
+    return fetchWithCsrf('/api-apps' + (force ? '?force=1' : ''))
       .then(res => {
         if (res.status === 429) { showWarningToast('API rate limited loading apps — retrying...'); throw new Error('Rate limited'); }
         if (!res.ok) {
@@ -1364,7 +1364,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initHelloSignClient(selectedClientId);
 
     // Save the selected API app to settings (hidden, not shown in Settings UI)
-    fetch('/settings/selected-api-app', {
+    fetchWithCsrf('/settings/selected-api-app', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clientId: selectedClientId })
@@ -1460,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Save the selected document mode to settings
-    fetch('/settings/selected-document-mode', {
+    fetchWithCsrf('/settings/selected-document-mode', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode: mode })
@@ -1496,7 +1496,7 @@ document.addEventListener('DOMContentLoaded', () => {
   templateSelect.addEventListener('change', () => {
     const selectedTemplateId = templateSelect.value;
     if (selectedTemplateId) {
-      fetch('/settings/selected-template', {
+      fetchWithCsrf('/settings/selected-template', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ templateId: selectedTemplateId })
@@ -1506,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== Document templates (driven by theme selection) =====
   function loadDocumentTemplates() {
-    fetch('/document-templates')
+    fetchWithCsrf('/document-templates')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -2319,7 +2319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.set('signingOrder', signingOrder);
       }
       addLogoSetting(formData);
-      fetch('/sign-auto-append', {
+      fetchWithCsrf('/sign-auto-append', {
         method: 'POST',
         body: formData
       }).then(async res => {
@@ -2345,7 +2345,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('[TEXT-TAGS] Sending signingOrder:', signingOrder);
       }
       addLogoSetting(formData);
-      fetch('/sign-with-document', {
+      fetchWithCsrf('/sign-with-document', {
         method: 'POST',
         body: formData
       }).then(async res => {
@@ -2370,7 +2370,7 @@ document.addEventListener('DOMContentLoaded', () => {
           formData.set('signingOrder', signingOrder);
         }
         addLogoSetting(formData);
-        fetch('/sign-with-formfields', {
+        fetchWithCsrf('/sign-with-formfields', {
           method: 'POST',
           body: formData
         }).then(async res => {
@@ -2392,7 +2392,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.set('signingOrder', signingOrder);
         console.log('[SIGN] Adding signingOrder to request:', signingOrder);
       }
-      fetch('/sign', {
+      fetchWithCsrf('/sign', {
         method: 'POST',
         body: formData
       }).then(async res => {
@@ -2438,7 +2438,7 @@ embedBtn.addEventListener('click', async () => {
 
   // Check if API App is in test mode for embedded signing
   try {
-    const testModeRes = await fetch('/api/test-mode');
+    const testModeRes = await fetchWithCsrf('/api/test-mode');
     const testModeData = await testModeRes.json();
     const isTestMode = testModeData.testMode?.[selectedClientId];
 
@@ -2547,7 +2547,7 @@ embedBtn.addEventListener('click', async () => {
     ? { method: 'POST', body: bodyParams }
     : { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(bodyParams) };
 
-  const res = await fetch(endpoint, fetchOpts);
+  const res = await fetchWithCsrf(endpoint, fetchOpts);
   const data = await res.json();
 
   // Check for error response from server
@@ -2903,7 +2903,7 @@ embedBtn.addEventListener('click', async () => {
   }
 
   // Check auth status before connecting SSE
-  fetch('/auth/status')
+  fetchWithCsrf('/auth/status')
     .then(r => r.json())
     .then(data => {
       if (data.authenticated) {
@@ -2928,7 +2928,7 @@ embedBtn.addEventListener('click', async () => {
 
   // Load API endpoint documentation mapping
   let endpointDocs = {};
-  fetch('/api/endpoint-docs')
+  fetchWithCsrf('/api/endpoint-docs')
     .then(res => res.json())
     .then(data => {
       if (data.success) {
@@ -3085,7 +3085,7 @@ embedBtn.addEventListener('click', async () => {
 
   // Silent refresh: updates logs without clearing existing content on failure
   function refreshLogsQuietly() {
-    fetch('/api-logs')
+    fetchWithCsrf('/api-logs')
       .then(res => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
@@ -3110,7 +3110,7 @@ embedBtn.addEventListener('click', async () => {
 
   function loadSidePanelLogs() {
     const container = document.getElementById('sidePanelLogsContainer');
-    fetch('/api-logs')
+    fetchWithCsrf('/api-logs')
       .then(res => {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
@@ -3498,7 +3498,7 @@ embedBtn.addEventListener('click', async () => {
 
     // Fetch and display user role info
     try {
-      const resp = await fetch('/auth/status');
+      const resp = await fetchWithCsrf('/auth/status');
       const data = await resp.json();
 
       if (data.authenticated && data.email) {
@@ -3832,17 +3832,17 @@ embedBtn.addEventListener('click', async () => {
       try {
         // Save all settings in parallel (batch operations)
         const [visRes, tmRes, webhookRes] = await Promise.all([
-          fetch('/api-apps/visibility', {
+          fetchWithCsrf('/api-apps/visibility', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ visibility }),
           }),
-          fetch('/api-apps/test-mode', {
+          fetchWithCsrf('/api-apps/test-mode', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ testMode }),
           }),
-          fetch('/api-apps/webhook-settings', {
+          fetchWithCsrf('/api-apps/webhook-settings', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ settings: webhookSettings }),
@@ -3968,7 +3968,7 @@ embedBtn.addEventListener('click', async () => {
         // Delete apps one by one
         const results = await Promise.allSettled(
           appsToDelete.map(app =>
-            fetch(`/api-apps/${app.clientId}`, {
+            fetchWithCsrf(`/api-apps/${app.clientId}`, {
               method: 'DELETE'
             }).then(async res => {
               const data = await res.json().catch(() => ({}));
@@ -4033,7 +4033,7 @@ embedBtn.addEventListener('click', async () => {
     const td = detailRow.querySelector('td');
     td.innerHTML = '<div class="app-detail-panel"><p style="color:#64748b;font-style:italic;">Loading app details...</p></div>';
 
-    fetch(`/api-apps/${clientId}`)
+    fetchWithCsrf(`/api-apps/${clientId}`)
       .then(async res => {
         const data = await res.json();
         if (!res.ok) {
@@ -4367,7 +4367,7 @@ embedBtn.addEventListener('click', async () => {
         // Get current user's email for ownership checking
         let currentUserEmail = '';
         try {
-          const authRes = await fetch('/auth/status');
+          const authRes = await fetchWithCsrf('/auth/status');
           const authData = await authRes.json();
           currentUserEmail = authData.email?.toLowerCase() || '';
         } catch (err) {
@@ -4629,7 +4629,7 @@ embedBtn.addEventListener('click', async () => {
     errorEl.style.display = 'none';
     container.style.display = 'none';
 
-    fetch('/api-logs')
+    fetchWithCsrf('/api-logs')
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
@@ -4738,8 +4738,8 @@ document.addEventListener('DOMContentLoaded', function() {
       // Fetch themes and template labels in parallel
       console.log('[loadThemes] Fetching themes and templates...');
       const [themesResp, templatesResp] = await Promise.all([
-        fetch('/themes'),
-        fetch('/api-templates?limit=1000')
+        fetchWithCsrf('/themes'),
+        fetchWithCsrf('/api-templates?limit=1000')
       ]);
 
       console.log('[loadThemes] Responses received, themes status:', themesResp.status, 'templates status:', templatesResp.status);
@@ -5411,7 +5411,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Load existing app count for onboarding modal
 async function loadExistingAppCount() {
   try {
-    const response = await fetch('/api-apps');
+    const response = await fetchWithCsrf('/api-apps');
     const apps = await response.json();
     const count = apps.filter(app => app.visible !== false).length;
     document.getElementById('existing-app-count').textContent = count;
