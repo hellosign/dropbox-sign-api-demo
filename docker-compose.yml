@@ -43,6 +43,7 @@ services:
 
       # Logging
       - VERBOSE_LOGGING=false
+    command: ["node", "server.js"]
     depends_on:
       redis:
         condition: service_healthy
