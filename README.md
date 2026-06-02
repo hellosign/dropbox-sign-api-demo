@@ -384,7 +384,7 @@ docker ps | grep redis
 docker start redis
 ```
 
-**Option 2: Native Install**
+**Option 2: Native Install (Mac/Linux)**
 
 ```bash
 # Mac (using Homebrew)
@@ -395,18 +395,36 @@ brew services start redis
 sudo apt install redis-server
 sudo systemctl enable redis-server
 sudo systemctl start redis-server
-
-# Windows WSL
-sudo service redis-server start
 ```
+
+**Option 3: Windows Native**
+
+Install Redis using one of these methods:
+
+- **Chocolatey:** `choco install redis-64` (then start with `redis-server`)
+- **Scoop:** `scoop install redis` (then start with `redis-server`)
+- **Manual download:** Get the latest `.msi` or `.zip` from [github.com/tporadowski/redis/releases](https://github.com/tporadowski/redis/releases)
+
+After installing, start the Redis server:
+```powershell
+# If installed via MSI, Redis runs as a Windows service automatically.
+# Otherwise, start it manually:
+redis-server
+```
+
+> **Note:** On Windows, `redis-cli` may not be in your PATH by default. You can find it in the Redis installation folder (e.g., `C:\Program Files\Redis\redis-cli.exe`) or verify the connection directly by starting the application — it will confirm Redis connectivity in the console output.
 
 #### Configure Redis
 
 **Step 1: Verify Redis is Running**
 
 ```bash
+# Mac/Linux
 redis-cli ping
 # Should return: PONG
+
+# Windows (if redis-cli is not in PATH, use the full path or skip this step)
+# The application will confirm Redis connectivity on startup.
 ```
 
 **Step 2: Add Redis URL to `.env`**
