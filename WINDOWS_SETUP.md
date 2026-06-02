@@ -354,33 +354,27 @@ Install Redis to enable:
 
 ### Install Redis on Windows:
 
-1. **Download Redis for Windows:**
-   - Go to: https://github.com/microsoftarchive/redis/releases
-   - Download the latest `.msi` installer
+1. **Download Redis for Windows** (choose one):
+   - **Chocolatey:** `choco install redis-64`
+   - **Scoop:** `scoop install redis`
+   - **Manual:** Download the latest `.msi` or `.zip` from [github.com/tporadowski/redis/releases](https://github.com/tporadowski/redis/releases)
 
-2. **Install Redis:**
-   - Run the installer
-   - Keep default settings
-   - Redis will run as a Windows service
+2. **Install and start Redis:**
+   - If installed via MSI, Redis runs as a Windows service automatically
+   - Otherwise, start it manually: `redis-server`
+   - If the service isn't running: `net start Redis`
 
-3. **Verify Redis is running:**
-   - Open Command Prompt
-   - Run: `redis-cli ping`
-   - Should return: `PONG`
-   - If Redis is not running, start it: `net start Redis`
-
-4. **Configure in `.env`:**
+3. **Configure in `.env`:**
    ```bash
    REDIS_URL=redis://localhost:6379
-   REDIS_DB=0
    ```
 
-5. **Restart the application**
+4. **Restart the application**
 
-6. **Verify the app is using Redis:**
+5. **Verify the app is using Redis:**
    - When you start the server, you should see:
    ```
-   ✓ Redis: Connected (sessions persisted)
+   ✓ Redis connected for session persistence
    ```
    - Instead of:
    ```
