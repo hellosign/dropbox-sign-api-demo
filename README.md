@@ -69,18 +69,25 @@ This demo portal lets you experience the full power of Dropbox Sign APIs in real
 ### Prerequisites
 
 - **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop/)
+- **Git** - [Download here](https://git-scm.com/downloads) (or download the project as a [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip))
 - **Dropbox Sign Account** - [Sign up here](https://www.hellosign.com) (free account works)
 
 > **Note:** Docker setup requires NO Node.js installation! Everything runs in containers.
 
 ### Quick Start with Docker
 
-#### 1. Clone the Repository
+#### 1. Get the Code
 
+**Option A: Clone with Git**
 ```bash
 git clone https://github.com/hellosign/dropbox-sign-api-demo.git
 cd dropbox-sign-api-demo
 ```
+
+**Option B: Download ZIP** (no Git required)
+1. Download the [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip)
+2. Extract the ZIP to a folder of your choice
+3. Open a terminal and `cd` into the extracted folder
 
 #### 2. Configure Admin Email
 
@@ -172,18 +179,25 @@ All configuration is done via `docker-compose.yml`. No `.env` file needed!
 
 **Prerequisites:**
 - **Node.js 22+** and npm
+- **Git** - [Download here](https://git-scm.com/downloads) (or download the project as a [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip))
 - **Dropbox Sign Account** - [Sign up here](https://www.hellosign.com) (free account works)
 
 **📘 Windows Users:** See [WINDOWS_SETUP.md](./WINDOWS_SETUP.md) for complete step-by-step installation guide.
 
 ### Step-by-Step Setup
 
-#### 1. Clone the Repository
+#### 1. Get the Code
 
+**Option A: Clone with Git**
 ```bash
 git clone https://github.com/hellosign/dropbox-sign-api-demo.git
 cd dropbox-sign-api-demo
 ```
+
+**Option B: Download ZIP** (no Git required)
+1. Download the [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip)
+2. Extract the ZIP to a folder of your choice
+3. Open a terminal and `cd` into the extracted folder
 
 #### 2. Install Dependencies
 
