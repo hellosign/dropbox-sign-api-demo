@@ -19,7 +19,6 @@ logs/
 # Internal development files (excluded from public version)
 .claude/
 CLAUDE.md
-scripts/
 tests/
 
 # Agent automation files (if auto-generated)
