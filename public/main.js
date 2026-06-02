@@ -5492,6 +5492,12 @@ async function createDemoApps() {
       // Error - show message but keep modal open
       loadingEl.style.display = 'none';
 
+      // Hide original action buttons when showing error with its own skip button
+      const createBtn = document.getElementById('createDemoAppsBtn');
+      const skipBtn = document.getElementById('skipOnboardingBtn');
+      if (createBtn) createBtn.style.display = 'none';
+      if (skipBtn) skipBtn.style.display = 'none';
+
       // If it's a plan restriction, show friendly message
       if (result.isPlanRestriction) {
         const errorTitle = result.error || 'Unable to create demo apps';
