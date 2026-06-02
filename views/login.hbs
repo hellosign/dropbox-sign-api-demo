@@ -143,13 +143,22 @@
     }
 
     .security-note {
-      font-size: 12px;
-      color: #8c8c8c;
-      text-align: center;
-      margin-top: 20px;
-      padding: 12px;
-      background: #f5f5f5;
-      border-radius: 6px;
+      font-size: 13px;
+      color: #991b1b;
+      text-align: left;
+      margin-bottom: 24px;
+      padding: 14px 16px;
+      background: #fef2f2;
+      border-radius: 8px;
+      border: 1px solid #fca5a5;
+      border-left: 4px solid #dc2626;
+      line-height: 1.5;
+    }
+
+    .security-note strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
     }
 
     /* Honeypot field - visually hidden */
@@ -179,6 +188,13 @@
     <div class="login-header">
       <h1 class="login-title">{{__ "login.title"}}</h1>
       <p class="login-subtitle">{{__ "login.subtitle"}}</p>
+    </div>
+
+    <div class="security-note">
+      <strong>⚠️ Demo/Testing Only</strong>
+      Use a dedicated test account with fictional data only.
+      Do not use production API keys or accounts containing real documents.
+      Your API key is stored only in your browser and is never saved on the server.
     </div>
 
     {{#if error}}
@@ -223,11 +239,6 @@
       </ol>
     </div>
 
-    <div class="security-note">
-      ⚠️ <strong>Demo/Testing Only</strong> — Use a dedicated test account with fictional data only.
-      Do not use production API keys or accounts containing real documents.
-      Your API key is stored only in your browser and is never saved on the server.
-    </div>
   </div>
 
   <script>
