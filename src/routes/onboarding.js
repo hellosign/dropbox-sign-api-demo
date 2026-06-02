@@ -209,6 +209,18 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
             error: `Invalid hostname (${domains.join(', ')}) - server may be misconfigured`,
             isConfigError: true
           });
+        } else if (errorMsg && (errorMsg.toLowerCase().includes('no domain specified') || errorMsg.toLowerCase().includes('domain') && errorMsg.toLowerCase().includes('required'))) {
+          errors.push({
+            app: appName,
+            error: 'No domain configured. Set the DOMAIN environment variable (e.g. "example.com") in your .env file.',
+            isConfigError: true
+          });
+        } else if (errorMsg && errorMsg.toLowerCase().includes('callback_url') && errorMsg.toLowerCase().includes('https')) {
+          errors.push({
+            app: appName,
+            error: 'Callback URL must be a valid HTTPS URL. Set CALLBACK_URL in your .env file (e.g. "https://yourdomain.com/webhook").',
+            isConfigError: true
+          });
         } else {
           errors.push({ app: appName, error: errorMsg });
         }
@@ -272,17 +284,17 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
         error: isPlanRestriction
           ? 'Dropbox Sign didn\'t allow us to create demo apps for your account.'
           : isConfigError
-          ? 'Server Configuration Error'
+          ? 'Environment Configuration Required'
           : 'Failed to create demo apps',
         message: isPlanRestriction
           ? 'This usually means your account is on a "per user" plan instead of an "API" plan. API Apps can only be created on API-enabled plans.'
           : isConfigError
-          ? 'The server is missing required environment configuration (DOMAIN or CALLBACK_URL). Please contact the administrator.'
+          ? 'API apps could not be created because required environment variables are not configured. Set DOMAIN (e.g. "example.com") and CALLBACK_URL (must be HTTPS, e.g. "https://example.com/webhook") in your .env file, then restart the server.'
           : 'Unable to create demo apps. Please check the details below.',
         suggestion: isPlanRestriction
           ? 'You can still use this portal with any existing API apps in your account. To create new API apps, contact Dropbox Sign support to upgrade to an API plan.'
           : isConfigError
-          ? 'Administrator: Set DOMAIN or CALLBACK_URL environment variable in .env.production'
+          ? 'You can skip this step and use existing API apps in your account, or configure the environment variables and try again.'
           : null,
         details: errors,
         isPlanRestriction,

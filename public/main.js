@@ -5507,6 +5507,28 @@ async function createDemoApps() {
           `Continue Without Demo Apps</button>` +
           `</div>`;
         errorEl.style.display = 'block';
+      } else if (result.isConfigError) {
+        const errorTitle = result.error || 'Configuration Required';
+        const explanation = result.message || 'Required environment variables are not configured.';
+        const suggestion = result.suggestion || 'Configure the required variables and restart the server.';
+
+        let detailsHtml = '';
+        if (result.details && result.details.length > 0) {
+          detailsHtml = `<ul style="margin:12px 0;padding-left:20px;color:#475569;font-size:13px;line-height:1.8;">` +
+            result.details.map(e => `<li>${e.error}</li>`).join('') +
+            `</ul>`;
+        }
+
+        errorEl.innerHTML =
+          `<div style="text-align:left;">` +
+          `<strong style="color:#b45309;font-size:15px;">⚙️ ${errorTitle}</strong><br><br>` +
+          `<p style="margin:12px 0;color:#475569;line-height:1.6;">${explanation}</p>` +
+          detailsHtml +
+          `<p style="margin:12px 0;color:#64748b;font-size:13px;line-height:1.5;">${suggestion}</p>` +
+          `<button onclick="skipOnboarding()" style="margin-top:16px;padding:10px 20px;background:#6366f1;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px;">` +
+          `Skip — Continue Without Demo Apps</button>` +
+          `</div>`;
+        errorEl.style.display = 'block';
       } else {
         // Other errors - show details
         let errorMessage = result.error || 'Failed to create apps. Please try again.';
