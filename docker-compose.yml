@@ -33,7 +33,6 @@ services:
 
       # Security Configuration (auto-generated if empty)
       - SESSION_SECRET=${SESSION_SECRET:-}
-      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-}
       - CSRF_SECRET=${CSRF_SECRET:-}
 
       # Access Control - EDIT THIS LINE with your email

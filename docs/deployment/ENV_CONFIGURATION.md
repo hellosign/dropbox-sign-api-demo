@@ -91,7 +91,9 @@ Used on EC2 server when `NODE_ENV=production` is set.
 ### Required Variables
 
 #### `API_KEY`
-Your Dropbox Sign API key for backend operations.
+Your Dropbox Sign API key (used only for initial validation during login).
+
+**Note:** The API key is validated on login, then returned to the browser for client-side storage. It is never persisted on the server.
 
 **Find it at:** https://app.hellosign.com/home/myAccount#api
 
@@ -147,7 +149,7 @@ PORT=3001
 ```
 
 #### `SESSION_SECRET`
-Secret key for session encryption (CHANGE IN PRODUCTION!).
+Secret key for session signing (CHANGE IN PRODUCTION!).
 
 ```bash
 SESSION_SECRET=your-secure-random-secret-key-here

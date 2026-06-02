@@ -150,7 +150,7 @@ npm start
 
 This setup will:
   1. Create your .env configuration file
-  2. Generate secure session and encryption keys
+  2. Generate secure session and CSRF keys
   3. Configure your admin email for login access
 
 Run automatic setup? (yes/no):
@@ -174,7 +174,6 @@ Run automatic setup? (yes/no): yes
 
 🔐 Step 2: Generating security keys...
   ✓ SESSION_SECRET generated
-  ✓ ENCRYPTION_KEY generated
   ✓ CSRF_SECRET generated
 
 👤 Step 3: Configure admin access...
@@ -194,7 +193,7 @@ Starting the application...
 
 **That's it!** The wizard automatically:
 - ✅ Creates the `.env` configuration file
-- ✅ Generates secure random secrets (SESSION_SECRET, ENCRYPTION_KEY, CSRF_SECRET)
+- ✅ Generates secure random secrets (SESSION_SECRET, CSRF_SECRET)
 - ✅ Sets your admin email for access control
 
 ---

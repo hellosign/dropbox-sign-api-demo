@@ -41,7 +41,7 @@ async function main() {
   console.log('');
   console.log('This setup will:');
   console.log('  1. Create your .env configuration file');
-  console.log('  2. Generate secure session and encryption keys');
+  console.log('  2. Generate secure session and CSRF keys');
   console.log('  3. Configure your admin email for login access');
   console.log('');
 
@@ -74,7 +74,6 @@ async function main() {
       '',
       '# Security Configuration',
       'SESSION_SECRET=',
-      'ENCRYPTION_KEY=',
       'CSRF_SECRET=',
       '',
       '# Access Control',
@@ -94,14 +93,10 @@ async function main() {
   console.log('🔐 Step 2: Generating security keys...');
 
   const sessionSecret = crypto.randomBytes(32).toString('hex');
-  const encryptionKey = crypto.randomBytes(16).toString('hex'); // 32 chars
   const csrfSecret = crypto.randomBytes(32).toString('hex');
 
   envContent = envContent.replace(/^SESSION_SECRET=.*$/m, `SESSION_SECRET=${sessionSecret}`);
   console.log('  ✓ SESSION_SECRET generated');
-
-  envContent = envContent.replace(/^ENCRYPTION_KEY=.*$/m, `ENCRYPTION_KEY=${encryptionKey}`);
-  console.log('  ✓ ENCRYPTION_KEY generated');
 
   envContent = envContent.replace(/^CSRF_SECRET=.*$/m, `CSRF_SECRET=${csrfSecret}`);
   console.log('  ✓ CSRF_SECRET generated');
@@ -113,6 +108,9 @@ async function main() {
   console.log('');
   console.log('ℹ️  Enter the email address that will have admin access.');
   console.log('   This should match your Dropbox Sign account email.');
+  console.log('');
+  console.log('   ⚠️  Use a dedicated TEST account with fictional data only.');
+  console.log('   Do not use an account containing real contracts or customer documents.');
   console.log('');
 
   const email = await ask('Admin email address: ');

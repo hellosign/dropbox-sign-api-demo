@@ -101,7 +101,6 @@ Briefly show available configuration:
 - Theme/branding customization
 - Language selection
 - Embedded signing preferences
-- API key management
 
 ---
 

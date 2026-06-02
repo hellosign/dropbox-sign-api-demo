@@ -21,9 +21,9 @@ This document outlines the security measures, known risks, and recommendations f
 - ✅ **CORS** disabled (same-origin policy)
 
 ### Data Protection
+- ✅ **Browser-only API key storage** (sessionStorage — never persisted server-side)
 - ✅ **Session cookies** with httpOnly, secure (in prod), and sameSite flags
 - ✅ **Redis for session storage** (not in-memory)
-- ✅ **API keys stored in session** only (not in database or logs)
 - ✅ **Hashed API keys** for rotation detection (SHA-256)
 
 ### Input Validation
@@ -58,13 +58,14 @@ This document outlines the security measures, known risks, and recommendations f
 - Frontend helper function for AJAX requests
 **Configuration:** Set CSRF_SECRET environment variable for production
 
-#### 3. API Key Encryption
+#### 3. API Key Storage (Browser-Only Architecture)
 **Status:** ✅ IMPLEMENTED  
-**Implementation:** API keys are now encrypted in Redis sessions using AES-256-CBC
-- Encryption/decryption functions added
-- API keys encrypted before storage in session
-- Automatic decryption when retrieved for API calls
-**Configuration:** Set ENCRYPTION_KEY environment variable (32 characters)
+**Implementation:** API keys are stored exclusively in the browser's `sessionStorage` and are never persisted on the server.
+- On login, server validates the API key against Dropbox Sign API and returns it to the browser
+- Browser stores the key in `sessionStorage` (cleared when tab/window closes)
+- Each API request includes the key via `X-Api-Key` header
+- Server session stores only `accountInfo` (email, account_id, role) — no secrets
+- No `ENCRYPTION_KEY` environment variable needed
 **Additional Protection:** Redis should still be:
 - Behind firewall (not public)
 - Password protected
@@ -102,15 +103,13 @@ if (IS_PRODUCTION && req.headers['x-forwarded-proto'] !== 'https') {
 ### Medium
 
 #### 7. Session Fixation
-**Risk:** Session ID not regenerated after login  
-**Mitigation:** Add after successful login:
+**Status:** ✅ IMPLEMENTED  
+**Implementation:** Session is regenerated after successful login:
 ```javascript
 req.session.regenerate((err) => {
-  req.session.apiKey = apiKey;
   req.session.accountInfo = accountInfo;
 });
 ```
-**Status:** ⚠️ TODO
 
 #### 8. Input Validation
 **Status:** ✅ IMPLEMENTED  
@@ -163,8 +162,8 @@ if (!verifyWebhookSignature(apiKey, req.body, req.headers['x-hellosign-signature
 - [ ] Review and limit ADMIN_EMAILS, ALLOWED_EMAILS
 - [ ] Enable Redis persistence (RDB/AOF)
 - [ ] Set up log rotation and monitoring
-- [ ] Add CSRF protection
-- [ ] Test session regeneration after login
+- [x] Add CSRF protection (implemented via csrf-csrf)
+- [x] Test session regeneration after login (implemented)
 - [ ] Verify webhook signature validation
 - [ ] Review CSP headers are not too permissive
 
@@ -204,7 +203,7 @@ if (!verifyWebhookSignature(apiKey, req.body, req.headers['x-hellosign-signature
 ## Threat Model
 
 ### Assets
-1. User API keys (stored in sessions)
+1. User API keys (stored in browser sessionStorage only)
 2. User data (themes, templates, settings)
 3. Signature requests metadata
 4. Admin access
@@ -212,9 +211,9 @@ if (!verifyWebhookSignature(apiKey, req.body, req.headers['x-hellosign-signature
 ### Threats
 1. **Unauthorized access** → Mitigated by authentication, rate limiting
 2. **Session hijacking** → Mitigated by httpOnly cookies, HTTPS
-3. **CSRF attacks** → ⚠️ Not fully mitigated (add csurf)
+3. **CSRF attacks** → ✅ Mitigated by csrf-csrf (double-submit cookie pattern)
 4. **XSS attacks** → Mitigated by CSP, Handlebars escaping
-5. **Redis compromise** → Partially mitigated (add encryption)
+5. **Redis compromise** → Low risk (no secrets stored — only account metadata and session state)
 6. **Dependency vulnerabilities** → Ongoing maintenance required
 
 ### Trust Boundaries
@@ -265,6 +264,6 @@ npm install -g eslint-plugin-security
 
 ---
 
-**Last Updated:** 2026-04-23  
-**Version:** 1.0  
-**Status:** Initial security review
+**Last Updated:** 2026-06-02  
+**Version:** 2.0  
+**Status:** Updated for browser-only API key architecture

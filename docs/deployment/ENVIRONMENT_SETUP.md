@@ -72,7 +72,7 @@ REDIS_URL=redis://localhost:6379
 | `BASE_URL` | Base URL for the application | `https://yourdomain.com` |
 | `OAUTH_CLIENT_ID` | Dropbox Sign OAuth Client ID | `abc123...` |
 | `OAUTH_CLIENT_SECRET` | Dropbox Sign OAuth Client Secret | `xyz789...` |
-| `SESSION_SECRET` | Session encryption key | Random 32+ char string |
+| `SESSION_SECRET` | Session signing key | Random 32+ char string |
 
 ### Optional Variables
 

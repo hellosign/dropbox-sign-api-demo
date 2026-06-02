@@ -15,6 +15,8 @@ This demo portal is designed for use within controlled environments such as:
 - Proof-of-concept deployments
 - API feature exploration and integration planning
 
+**Use a dedicated test account.** Create a separate Dropbox Sign account exclusively for this demo portal. Do not use an account that contains real contracts, customer documents, or personally identifiable information. If an API key were ever compromised, a dedicated test account with only fictional data ensures zero business impact.
+
 **Security model:** API keys are stored exclusively in your browser's session storage and are **never persisted on the server**. When you close the browser tab, the key is gone. The server validates your key on login but does not retain it — similar to how the [Dropbox Sign API documentation](https://developers.hellosign.com/) "Try It" pages work.
 
 **⚠️ NOT RECOMMENDED for public internet deployment.** This application is not hardened for public-facing production use and should only be deployed in trusted, internal environments.
@@ -129,7 +131,7 @@ docker compose up
 This will:
 - Download and start Redis automatically
 - Build and start the application
-- Auto-generate security keys (SESSION_SECRET, ENCRYPTION_KEY, CSRF_SECRET)
+- Auto-generate security keys (SESSION_SECRET, CSRF_SECRET)
 - Use your configured admin email
 
 **First startup may take 1-2 minutes** while Docker downloads images and builds the app.
@@ -168,7 +170,7 @@ docker compose down -v
 All configuration is done via `docker-compose.yml`. No `.env` file needed!
 
 - **ADMIN_EMAILS** - Required. Set your Dropbox Sign account email
-- **SESSION_SECRET, ENCRYPTION_KEY, CSRF_SECRET** - Auto-generated if empty
+- **SESSION_SECRET, CSRF_SECRET** - Auto-generated if empty
 - **ALLOWED_DOMAINS** - Optional. Restrict access by email domain
 - **ALLOWED_EMAILS** - Optional. Whitelist specific emails
 
@@ -218,7 +220,7 @@ npm start
 **First-time setup:** When you run `npm start` for the first time, an interactive setup wizard will guide you through:
 
 1. ✅ **Automatic .env creation** - Creates configuration file from template
-2. ✅ **Security key generation** - Generates SESSION_SECRET, ENCRYPTION_KEY, and CSRF_SECRET
+2. ✅ **Security key generation** - Generates SESSION_SECRET and CSRF_SECRET
 3. ✅ **Admin email configuration** - Sets up your admin access
 4. ✅ **Redis configuration** - Optional, for session persistence across restarts
 
@@ -234,7 +236,7 @@ The setup takes less than 30 seconds and ensures secure defaults.
 
 This setup will:
   1. Create your .env configuration file
-  2. Generate secure session and encryption keys
+  2. Generate secure session and CSRF keys
   3. Configure your admin email for login access
 
 Run automatic setup? (yes/no): yes
@@ -244,7 +246,6 @@ Run automatic setup? (yes/no): yes
 
 🔐 Step 2: Generating security keys...
   ✓ SESSION_SECRET generated
-  ✓ ENCRYPTION_KEY generated
   ✓ CSRF_SECRET generated
 
 👤 Step 3: Configure admin access...
@@ -319,7 +320,6 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 # 3. Edit .env and add:
 #    - SESSION_SECRET (use generated value)
-#    - ENCRYPTION_KEY (use generated value, max 32 chars)
 #    - CSRF_SECRET (use generated value)
 #    - ADMIN_EMAILS (your email address)
 
@@ -483,8 +483,7 @@ CUSTOM_COMPANY_NAME=Your Company Name
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `API_KEY` | ❌ No | - | Your Dropbox Sign API key (needed for API calls) |
-| `SESSION_SECRET` | ⚠️ Recommended | Auto-generated | Session encryption secret (min 32 chars recommended) |
-| `ENCRYPTION_KEY` | ❌ No | Auto-generated | Internal encryption key (auto-generated, 32 chars) |
+| `SESSION_SECRET` | ⚠️ Recommended | Auto-generated | Session signing secret (min 32 chars recommended) |
 | `CSRF_SECRET` | ❌ No | Auto-generated | CSRF protection secret |
 | `PORT` | ❌ No | `3001` | Server port |
 | `NODE_ENV` | ❌ No | `development` | Environment mode |
@@ -603,10 +602,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on contributing to this 
 **Problem: "Session secret must be at least 32 characters" warning**
 - Solution: Generate a longer random string for `SESSION_SECRET`
 - Run: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
-
-**Problem: "ENCRYPTION_KEY must be exactly 32 characters"**
-- Solution: Use exactly 32 characters for `ENCRYPTION_KEY`
-- Example: `ENCRYPTION_KEY=your-32-character-key-here-now`
 
 **Problem: npm install fails**
 - Solution: Make sure you have Node.js 18+ installed

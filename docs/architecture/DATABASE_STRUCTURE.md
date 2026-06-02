@@ -9,7 +9,7 @@ The Sign Portal uses **Redis** as its primary data store for:
 
 **Key Design Principles:**
 - Multi-tenant: Each user's data is isolated by `account_id`
-- Session-based: Authentication via API key stored in session
+- Session-based: Authentication via session (API key stored in browser only, not in Redis)
 - TTL-managed: Sessions auto-expire after 30 days of inactivity
 - No persistent relational data: All data in Redis with optional memory fallback
 
@@ -33,13 +33,9 @@ The Sign Portal uses **Redis** as its primary data store for:
     "httpOnly": true,
     "sameSite": "lax"
   },
-  "apiKey": "user_api_key_here",
   "accountInfo": {
     "account_id": "9db283babedc87ea379d5327641c60222cb4a2c8",
     "email_address": "user@example.com",
-    "is_locked": false,
-    "is_paid_hs": true,
-    "is_paid_hf": false,
     "role_code": "a"
   },
   "signatureRequests": [
@@ -307,11 +303,11 @@ Session C (device 3) ─┘
 ### User Login
 1. Validate API key via Dropbox Sign API
 2. Create session: `sess:{sessionId}`
-3. Store `apiKey` and `accountInfo` in session
+3. Store `accountInfo` in session (API key returned to browser, stored in `sessionStorage`)
 4. Load per-user data: `user:{account_id}:*`
 
 ### User Activity
-1. Middleware checks `req.session.apiKey`
+1. Middleware checks `req.session.accountInfo` (session-only routes) or `req.session.accountInfo` + `X-Api-Key` header (API routes)
 2. If valid, allow access
 3. Activity updates session expiration (rolling)
 
@@ -338,7 +334,6 @@ Session C (device 3) ─┘
 ### Data Isolation
 
 **Per-Session Isolation:**
-- Each session has its own `apiKey` (never shared)
 - Each session has independent `signatureRequests` array
 - Each session has independent `webhookEvents` object
 
@@ -348,8 +343,9 @@ Session C (device 3) ─┘
 - Admin panel can see all users but not modify other users' data
 
 **Security:**
-- API key stored in session (encrypted by express-session)
-- Session cookie is `httpOnly` (no JavaScript access)
+- API key stored in browser `sessionStorage` only (never persisted server-side)
+- API key sent per-request via `X-Api-Key` header for routes that call Dropbox Sign API
+- Session cookie is `httpOnly` (no JavaScript access to session ID)
 - Session cookie is `sameSite: lax` (CSRF protection)
 - Admin access controlled by `ADMIN_EMAILS` whitelist
 
@@ -357,7 +353,7 @@ Session C (device 3) ─┘
 
 | Data Type | Scope | Storage | Shared Across Sessions? |
 |-----------|-------|---------|------------------------|
-| API Key | Session | `sess:{sessionId}.apiKey` | ❌ No |
+| API Key | Browser | `sessionStorage` (browser only) | ❌ No |
 | Account Info | Session | `sess:{sessionId}.accountInfo` | ✅ Yes (same user) |
 | Signature Requests | Session | `sess:{sessionId}.signatureRequests` | ❌ No |
 | Webhook Events | Session | `sess:{sessionId}.webhookEvents` | ❌ No |
@@ -428,9 +424,9 @@ const userData = await getUserDataKeys(accountId);
 
 **Create Session:**
 ```javascript
-req.session.apiKey = 'user_api_key';
-req.session.accountInfo = { account_id, email_address, ... };
+req.session.accountInfo = { account_id, email_address, role_code };
 await req.session.save();
+// API key returned to browser via JSON response (stored in sessionStorage)
 ```
 
 **Update Per-User Data:**
@@ -571,6 +567,7 @@ const result = await deleteUserCompletely(accountId);
 
 | Date       | Version | Changes                                                                   | Author |
 |------------|---------|---------------------------------------------------------------------------|--------|
+| 2026-06-02 | 2.0     | Updated for browser-only API key architecture (removed apiKey from session structure) | Project maintainers |
 | 2026-04-23 | 1.1     | Added `user:{account_id}:profile` key for persistent user profile storage | Project maintainers |
 | 2026-04-23 | 1.0     | Initial database structure documentation                                  | Project maintainers |
 

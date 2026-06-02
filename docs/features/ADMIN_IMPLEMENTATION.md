@@ -91,7 +91,7 @@ ADMIN_EMAILS=admin@dropbox.com,admin2@example.com
 
 ## Security Features
 
-1. **Authentication Required** - All admin routes require valid session (`requireAuth`)
+1. **Authentication Required** - All admin routes require valid session (`requireSession`)
 2. **Authorization Check** - Email must be in `ADMIN_EMAILS` list (`requireAdmin`)
 3. **Access Logging** - All admin access attempts logged with user email
 4. **Action Logging** - Destructive actions (logout, data deletion) logged with admin user

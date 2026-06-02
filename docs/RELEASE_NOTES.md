@@ -24,10 +24,11 @@
 ### Security
 
 - Session isolation per user
-- API key encryption at rest
-- CSRF protection
+- Browser-only API key storage (never persisted server-side)
+- CSRF protection (double-submit cookie pattern)
 - Rate limiting
 - Secure cookie configuration
+- Demo/Testing Only warnings throughout the application
 
 ### Requirements
 
