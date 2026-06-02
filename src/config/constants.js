@@ -132,13 +132,16 @@ export const IS_DEVELOPMENT = !IS_PRODUCTION;
 // Server configuration
 export const PORT = parseInt(process.env.PORT, 10) || 3001;
 
-// Log startup configuration
-console.log('[ACCESS CONTROL] Allowed domains:', ALLOWED_DOMAINS);
-if (ALLOWED_EMAILS.length > 0) {
-  console.log('[ACCESS CONTROL] Allowed emails:', ALLOWED_EMAILS.length, 'specific emails');
-}
-if (ADMIN_EMAILS.length > 0) {
-  console.log('[ADMIN] Admin emails configured:', ADMIN_EMAILS.length, 'admins');
-} else {
-  console.log('[ADMIN] No admin emails configured - admin panel disabled');
+// Log startup configuration (only when verbose)
+const _VERBOSE = process.env.VERBOSE_LOGGING === 'true';
+if (_VERBOSE) {
+  console.log('[ACCESS CONTROL] Allowed domains:', ALLOWED_DOMAINS);
+  if (ALLOWED_EMAILS.length > 0) {
+    console.log('[ACCESS CONTROL] Allowed emails:', ALLOWED_EMAILS.length, 'specific emails');
+  }
+  if (ADMIN_EMAILS.length > 0) {
+    console.log('[ADMIN] Admin emails configured:', ADMIN_EMAILS.length, 'admins');
+  } else {
+    console.log('[ADMIN] No admin emails configured - admin panel disabled');
+  }
 }

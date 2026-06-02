@@ -166,7 +166,7 @@ router.post('/login',
     const isUserAdmin = isAdmin(emailLower, adminEmails);
 
     if (!isUserAdmin && !isEmailAllowed(emailLower, allowedDomains, allowedEmails)) {
-      console.warn(`[ACCESS CONTROL] Access denied for ${accountInfo.email_address} (domain: ${emailDomain})`);
+      if (VERBOSE_LOGGING) console.warn(`[ACCESS CONTROL] Access denied for ${accountInfo.email_address} (domain: ${emailDomain})`);
 
       await logSecurityEvent({
         eventType: 'login_access_denied',
@@ -184,7 +184,7 @@ router.post('/login',
     }
 
     if (isUserAdmin) {
-      console.log(`[ACCESS CONTROL] Admin access granted for ${accountInfo.email_address}`);
+      if (VERBOSE_LOGGING) console.log(`[ACCESS CONTROL] Admin access granted for ${accountInfo.email_address}`);
     }
 
     // Access granted - no need to log on every login (only log denials)
@@ -202,7 +202,7 @@ router.post('/login',
 
         if (currentApiKeyHash && currentApiKeyHash !== newApiKeyHash) {
           // API key has changed - this is a rotation
-          console.log(`[API KEY ROTATION] Detected for account ${accountInfo.account_id}`);
+          if (VERBOSE_LOGGING) console.log(`[API KEY ROTATION] Detected for account ${accountInfo.account_id}`);
 
           // Invalidate all other sessions for security
           sessionCount = await invalidateAllSessionsForAccount(accountInfo.account_id, req.sessionID);
@@ -210,12 +210,12 @@ router.post('/login',
 
           // Set onboarding status to pending to offer "Start Fresh" or "Continue" choice
           await setOnboardingStatus(accountInfo.account_id, 'pending');
-          console.log(`[ONBOARDING] API key rotation detected, showing onboarding options`);
+          if (VERBOSE_LOGGING) console.log(`[ONBOARDING] API key rotation detected, showing onboarding options`);
         } else if (!currentApiKeyHash) {
           if (VERBOSE_LOGGING) console.log(`[FIRST LOGIN] Setting initial API key hash for account ${accountInfo.account_id}`);
           // Set onboarding status to pending for first-time users
           await setOnboardingStatus(accountInfo.account_id, 'pending');
-          console.log(`[ONBOARDING] New user detected: ${accountInfo.account_id}`);
+          if (VERBOSE_LOGGING) console.log(`[ONBOARDING] New user detected: ${accountInfo.account_id}`);
         }
 
         // Store new API key hash
@@ -317,7 +317,7 @@ router.post('/logout', async (req, res) => {
         const profile = JSON.parse(profileData);
         profile.last_logout = Date.now();
         await redisClient.set(profileKey, JSON.stringify(profile));
-        console.log(`[AUTH] User ${accountId} logged out`);
+        if (VERBOSE_LOGGING) console.log(`[AUTH] User ${accountId} logged out`);
       }
     } catch (err) {
       console.error('[AUTH] Failed to update logout timestamp:', err);

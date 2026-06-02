@@ -4,6 +4,7 @@
 import i18n from 'i18n';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { VERBOSE_LOGGING } from '../config/security.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,9 +25,9 @@ i18n.configure({
 });
 
 // Log available locales on startup
-console.log('[I18N] Configured locales:', i18n.getLocales());
-console.log('[I18N] Default locale:', i18n.getLocale());
-console.log('[I18N] Locales directory:', path.join(__dirname, '../../locales'));
+if (VERBOSE_LOGGING) console.log('[I18N] Configured locales:', i18n.getLocales());
+if (VERBOSE_LOGGING) console.log('[I18N] Default locale:', i18n.getLocale());
+if (VERBOSE_LOGGING) console.log('[I18N] Locales directory:', path.join(__dirname, '../../locales'));
 
 /**
  * Parse Accept-Language header to extract preferred language

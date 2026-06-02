@@ -67,11 +67,11 @@ router.get('/', requireAuth, async (req, res) => {
 
         // Debug: log available fields
         if (signatureRequests.indexOf(sr) === 0) {
-          console.log('[SIGNATURES] First signature request - Title:', sr.title);
-          console.log('[SIGNATURES] SR fields:', Object.keys(sr));
-          console.log('[SIGNATURES] First signature fields:', signatures.length > 0 ? Object.keys(signatures[0]) : 'no signatures');
-          console.log('[SIGNATURES] Has signUrl?:', signatures.length > 0 ? !!signatures[0].signUrl : 'N/A');
-          console.log('[SIGNATURES] signUrl value:', signatures.length > 0 ? signatures[0].signUrl : 'N/A');
+          if (VERBOSE_LOGGING) console.log('[SIGNATURES] First signature request - Title:', sr.title);
+          if (VERBOSE_LOGGING) console.log('[SIGNATURES] SR fields:', Object.keys(sr));
+          if (VERBOSE_LOGGING) console.log('[SIGNATURES] First signature fields:', signatures.length > 0 ? Object.keys(signatures[0]) : 'no signatures');
+          if (VERBOSE_LOGGING) console.log('[SIGNATURES] Has signUrl?:', signatures.length > 0 ? !!signatures[0].signUrl : 'N/A');
+          if (VERBOSE_LOGGING) console.log('[SIGNATURES] signUrl value:', signatures.length > 0 ? signatures[0].signUrl : 'N/A');
         }
 
         let overallStatus;
@@ -194,7 +194,7 @@ router.get('/', requireAuth, async (req, res) => {
 
         // Debug logging for isEmbedded flag
         if (signatureRequests.indexOf(sr) < 3) {
-          console.log(`[SIGNATURES] Request "${sr.title}" - isEmbedded: ${isEmbedded}, metadata:`, metadata);
+          if (VERBOSE_LOGGING) console.log(`[SIGNATURES] Request "${sr.title}" - isEmbedded: ${isEmbedded}, metadata:`, metadata);
         }
 
         return {
@@ -237,7 +237,7 @@ router.get('/', requireAuth, async (req, res) => {
       if (isRateLimit) {
         return res.status(429).json({ error: "Rate limited by Dropbox Sign API", rateLimited: true });
       }
-      if (VERBOSE_LOGGING) console.error("Error in /signatures:", err?.message || err, err?.body || "");
+      console.error("Error in /signatures:", err?.message || err, err?.body || "");
       return res.status(500).json({ error: "Failed to fetch signature list" });
     }
   }

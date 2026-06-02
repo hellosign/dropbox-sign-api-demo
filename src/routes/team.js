@@ -5,6 +5,7 @@ import https from 'https';
 import { requireAuth } from '../middleware/auth.js';
 import { apiCall } from '../services/dropbox-sign.js';
 import { decryptApiKey } from '../utils/crypto.js';
+import { VERBOSE_LOGGING } from '../config/security.js';
 import { buildRequestDetail } from '../utils/logging.js';
 
 const router = Router();
@@ -17,7 +18,7 @@ router.get('/debug', requireAuth, async (req, res) => {
   const { addApiLog } = req.app.locals.redisHelpers;
 
   try {
-    console.log('[TEAM-DEBUG] Fetching team hierarchy for user:', req.session.accountInfo?.email_address);
+    if (VERBOSE_LOGGING) console.log('[TEAM-DEBUG] Fetching team hierarchy for user:', req.session.accountInfo?.email_address);
 
     // Get current user's account info
     const accountResp = await apiCall(req, 'AccountApi', 'accountGet', [], {
@@ -31,11 +32,11 @@ router.get('/debug', requireAuth, async (req, res) => {
       team_id: accountResp.body?.account?.teamId,
     };
 
-    console.log('[TEAM-DEBUG] User info:', userInfo);
+    if (VERBOSE_LOGGING) console.log('[TEAM-DEBUG] User info:', userInfo);
 
     // Check if user is part of a team
     if (!userInfo.team_id) {
-      console.log('[TEAM-DEBUG] User is not part of a team');
+      if (VERBOSE_LOGGING) console.log('[TEAM-DEBUG] User is not part of a team');
       return res.json({
         current_user: userInfo,
         current_team: null,
@@ -73,7 +74,7 @@ router.get('/debug', requireAuth, async (req, res) => {
     // Get sub-teams using direct API call (SDK method may not work)
     let subTeams = [];
     try {
-      console.log(`[TEAM-DEBUG] Fetching sub-teams for team_id: ${teamInfo.team_id}`);
+      if (VERBOSE_LOGGING) console.log(`[TEAM-DEBUG] Fetching sub-teams for team_id: ${teamInfo.team_id}`);
 
       const apiKey = decryptApiKey(req.session.apiKey);
       const auth = Buffer.from(`${apiKey}:`).toString('base64');
@@ -90,7 +91,7 @@ router.get('/debug', requireAuth, async (req, res) => {
         };
 
         https.get(options, (res) => {
-          console.log(`[TEAM-DEBUG] Sub-teams API status: ${res.statusCode}`);
+          if (VERBOSE_LOGGING) console.log(`[TEAM-DEBUG] Sub-teams API status: ${res.statusCode}`);
           let data = '';
           res.on('data', (chunk) => { data += chunk; });
           res.on('end', () => {
@@ -119,9 +120,9 @@ router.get('/debug', requireAuth, async (req, res) => {
         has_sub_teams: false,
       }));
 
-      console.log(`[TEAM-DEBUG] Loaded ${subTeams.length} sub-teams`);
+      if (VERBOSE_LOGGING) console.log(`[TEAM-DEBUG] Loaded ${subTeams.length} sub-teams`);
     } catch (err) {
-      console.log('[TEAM-DEBUG] Error fetching sub-teams:', err?.message);
+      if (VERBOSE_LOGGING) console.log('[TEAM-DEBUG] Error fetching sub-teams:', err?.message);
       subTeams = []; // Keep as empty array on error
     }
 
@@ -155,14 +156,14 @@ router.get('/debug', requireAuth, async (req, res) => {
  */
 router.get('/members', requireAuth, async (req, res) => {
   try {
-    console.log('[TEAM] Attempting to fetch team info...');
+    if (VERBOSE_LOGGING) console.log('[TEAM] Attempting to fetch team info...');
     // Get team info first to get team_id
     const teamInfoResp = await apiCall(req, 'TeamApi', 'teamInfo', [], {
       method: 'GET',
       endpoint: '/team'
     });
-    console.log('[TEAM] Team info status:', teamInfoResp.response?.statusCode);
-    console.log('[TEAM] Team info body:', JSON.stringify(teamInfoResp.body, null, 2));
+    if (VERBOSE_LOGGING) console.log('[TEAM] Team info status:', teamInfoResp.response?.statusCode);
+    if (VERBOSE_LOGGING) console.log('[TEAM] Team info body:', JSON.stringify(teamInfoResp.body, null, 2));
 
     const teamId = teamInfoResp.body?.team?.teamId;
     const teamName = teamInfoResp.body?.team?.name;
@@ -205,7 +206,7 @@ router.get('/:teamId/members', requireAuth, async (req, res) => {
   const { teamId } = req.params;
 
   try {
-    console.log(`[TEAM] Fetching members for team_id: ${teamId}`);
+    if (VERBOSE_LOGGING) console.log(`[TEAM] Fetching members for team_id: ${teamId}`);
 
     // Fetch team members
     const membersResp = await apiCall(req, 'TeamApi', 'teamMembers', [teamId, 1, 100], {
@@ -214,7 +215,7 @@ router.get('/:teamId/members', requireAuth, async (req, res) => {
     });
 
     const members = (membersResp.body?.teamMembers || []).map(m => {
-      console.log(`[TEAM] Raw member data:`, {
+      if (VERBOSE_LOGGING) console.log(`[TEAM] Raw member data:`, {
         accountId: m.accountId,
         emailAddress: m.emailAddress,
         role: m.role,
@@ -228,7 +229,7 @@ router.get('/:teamId/members', requireAuth, async (req, res) => {
       };
     });
 
-    console.log(`[TEAM] Found ${members.length} members for team ${teamId}`);
+    if (VERBOSE_LOGGING) console.log(`[TEAM] Found ${members.length} members for team ${teamId}`);
 
     res.json({ members });
   } catch (err) {
@@ -248,7 +249,7 @@ router.get('/:teamId/sub_teams', requireAuth, async (req, res) => {
   const { teamId } = req.params;
   const { addApiLog } = req.app.locals.redisHelpers;
 
-  console.log(`[TEAM] Fetching sub-teams for team_id: ${teamId}`);
+  if (VERBOSE_LOGGING) console.log(`[TEAM] Fetching sub-teams for team_id: ${teamId}`);
 
   try {
     const apiKey = decryptApiKey(req.session.apiKey);
@@ -267,7 +268,7 @@ router.get('/:teamId/sub_teams', requireAuth, async (req, res) => {
       };
 
       https.get(options, (res) => {
-        console.log(`[TEAM] Sub-teams API status for ${teamId}: ${res.statusCode}`);
+        if (VERBOSE_LOGGING) console.log(`[TEAM] Sub-teams API status for ${teamId}: ${res.statusCode}`);
         let data = '';
         res.on('data', (chunk) => { data += chunk; });
         res.on('end', () => {
@@ -294,7 +295,7 @@ router.get('/:teamId/sub_teams', requireAuth, async (req, res) => {
       name: st.name,
     }));
 
-    console.log(`[TEAM] Found ${subTeams.length} sub-teams for team ${teamId}`);
+    if (VERBOSE_LOGGING) console.log(`[TEAM] Found ${subTeams.length} sub-teams for team ${teamId}`);
 
     res.json({
       parent_team_id: teamId,
@@ -362,7 +363,7 @@ router.delete('/:teamId', requireAuth, async (req, res) => {
   const { teamId } = req.params;
   const { addApiLog } = req.app.locals.redisHelpers;
 
-  console.log('[TEAM] Delete request for team_id:', teamId);
+  if (VERBOSE_LOGGING) console.log('[TEAM] Delete request for team_id:', teamId);
 
   try {
     const apiKey = decryptApiKey(req.session.apiKey);
@@ -420,7 +421,7 @@ router.delete('/:teamId', requireAuth, async (req, res) => {
       };
 
       const req = https.request(options, (res) => {
-        console.log(`[TEAM] Delete API status: ${res.statusCode}`);
+        if (VERBOSE_LOGGING) console.log(`[TEAM] Delete API status: ${res.statusCode}`);
         let data = '';
         res.on('data', (chunk) => { data += chunk; });
         res.on('end', () => {
@@ -450,7 +451,7 @@ router.delete('/:teamId', requireAuth, async (req, res) => {
       response: JSON.parse(JSON.stringify(deleteData || {})),
     }, null, req);
 
-    console.log('[TEAM] Team deleted successfully:', teamId);
+    if (VERBOSE_LOGGING) console.log('[TEAM] Team deleted successfully:', teamId);
 
     res.json({
       success: true,

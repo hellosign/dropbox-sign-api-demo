@@ -248,8 +248,8 @@ router.put('/test-mode', requireAuth, express.json(), async (req, res) => {
   // Force express-session to recognize the session as modified
   req.session.touch();
 
-  console.log('[TEST-MODE] Saving test mode settings for account', accountId, ':', req.session.appTestMode);
-  console.log('[TEST-MODE] Test mode object keys:', Object.keys(req.session.appTestMode));
+  if (VERBOSE_LOGGING) console.log('[TEST-MODE] Saving test mode settings for account', accountId, ':', req.session.appTestMode);
+  if (VERBOSE_LOGGING) console.log('[TEST-MODE] Test mode object keys:', Object.keys(req.session.appTestMode));
 
   // Persist to Redis for durability
   await setAppTestModeSettings(accountId, req.session.appTestMode);
@@ -259,9 +259,9 @@ router.put('/test-mode', requireAuth, express.json(), async (req, res) => {
     req.session.appsCache.timestamp = 0;
   }
 
-  console.log('[TEST-MODE] Settings saved to Redis and cache invalidated');
-  console.log('[TEST-MODE] Session ID:', req.sessionID);
-  console.log('[TEST-MODE] Session appTestMode before save:', req.session.appTestMode);
+  if (VERBOSE_LOGGING) console.log('[TEST-MODE] Settings saved to Redis and cache invalidated');
+  if (VERBOSE_LOGGING) console.log('[TEST-MODE] Session ID:', req.sessionID);
+  if (VERBOSE_LOGGING) console.log('[TEST-MODE] Session appTestMode before save:', req.session.appTestMode);
 
   // Save session to ensure changes persist
   req.session.save((err) => {
@@ -269,7 +269,7 @@ router.put('/test-mode', requireAuth, express.json(), async (req, res) => {
       console.error('[TEST-MODE] Error saving session:', err);
       return res.status(500).json({ error: 'Failed to save session' });
     }
-    console.log('[TEST-MODE] Session save completed successfully');
+    if (VERBOSE_LOGGING) console.log('[TEST-MODE] Session save completed successfully');
     res.json({ success: true, testMode: req.session.appTestMode });
   });
 });
@@ -293,7 +293,7 @@ router.put('/:clientId/webhook-enabled', requireAuth, express.json(), async (req
   }
 
   await setAppWebhookEnabled(accountId, clientId, enabled);
-  console.log(`[CALLBACK SETTING] Saved for app ${clientId}: ${enabled}`);
+  if (VERBOSE_LOGGING) console.log(`[CALLBACK SETTING] Saved for app ${clientId}: ${enabled}`);
   res.json({ success: true, clientId, enabled });
 });
 
@@ -380,7 +380,7 @@ router.put('/webhook-settings', requireAuth, express.json(), async (req, res) =>
 
       // Check if user owns this app before allowing modifications
       if (currentUserEmail !== ownerEmail) {
-        console.log(`[CALLBACK] User ${currentUserEmail} attempted to modify app ${clientId} owned by ${ownerEmail} - blocked`);
+        if (VERBOSE_LOGGING) console.log(`[CALLBACK] User ${currentUserEmail} attempted to modify app ${clientId} owned by ${ownerEmail} - blocked`);
         errors.push(`Cannot modify "${app.name}" - you don't own this app`);
         continue; // Skip this app
       }
@@ -388,7 +388,7 @@ router.put('/webhook-settings', requireAuth, express.json(), async (req, res) =>
       // Update callback URL on Dropbox Sign if state changed
       if (isEnabled && !currentCallbackUrl) {
         // Enable: Set callback URL from .env
-        console.log(`[CALLBACK] Enabling callbacks for app ${clientId} (${app.name}) - setting URL: ${callbackUrl}`);
+        if (VERBOSE_LOGGING) console.log(`[CALLBACK] Enabling callbacks for app ${clientId} (${app.name}) - setting URL: ${callbackUrl}`);
         const updateReq = new DropboxSign.ApiAppUpdateRequest();
         updateReq.callbackUrl = callbackUrl;
         updatePromises.push(
@@ -402,7 +402,7 @@ router.put('/webhook-settings', requireAuth, express.json(), async (req, res) =>
         );
       } else if (!isEnabled && currentCallbackUrl) {
         // Disable: Clear callback URL
-        console.log(`[CALLBACK] Disabling callbacks for app ${clientId} (${app.name}) - clearing URL`);
+        if (VERBOSE_LOGGING) console.log(`[CALLBACK] Disabling callbacks for app ${clientId} (${app.name}) - clearing URL`);
         const updateReq = new DropboxSign.ApiAppUpdateRequest();
         updateReq.callbackUrl = '';
         updatePromises.push(
@@ -430,7 +430,7 @@ router.put('/webhook-settings', requireAuth, express.json(), async (req, res) =>
       req.session.appsCache.timestamp = 0; // Invalidate cache
     }
 
-    console.log(`[WEBHOOK SETTINGS] Saved for user ${accountId}:`, settings);
+    if (VERBOSE_LOGGING) console.log(`[WEBHOOK SETTINGS] Saved for user ${accountId}:`, settings);
 
     // Return response with any errors
     if (errors.length > 0) {
@@ -507,7 +507,7 @@ router.get('/:clientId/logo', requireAuth, async (req, res) => {
 
     https.get(options, (apiRes) => {
       if (apiRes.statusCode === 404) {
-        console.log(`[LOGO] Logo not found for ${clientId}`);
+        if (VERBOSE_LOGGING) console.log(`[LOGO] Logo not found for ${clientId}`);
         return res.status(404).send('Logo not found');
       }
 
@@ -545,8 +545,8 @@ router.get('/:clientId/logo', requireAuth, async (req, res) => {
 const appLogoUpload = multer({ dest: os.tmpdir() });
 router.put('/:clientId', requireAuth, appLogoUpload.single('custom_logo_file'), async (req, res) => {
   const { clientId } = req.params;
-  console.log(`[API APPS] PUT request for clientId: ${clientId}`);
-  console.log(`[API APPS] Request body:`, { name: req.body.name, domains: req.body.domains, callbackUrl: req.body.callbackUrl });
+  if (VERBOSE_LOGGING) console.log(`[API APPS] PUT request for clientId: ${clientId}`);
+  if (VERBOSE_LOGGING) console.log(`[API APPS] Request body:`, { name: req.body.name, domains: req.body.domains, callbackUrl: req.body.callbackUrl });
   try {
     const updateReq = new DropboxSign.ApiAppUpdateRequest();
 
@@ -555,10 +555,10 @@ router.put('/:clientId', requireAuth, appLogoUpload.single('custom_logo_file'), 
     if (req.body.domains) {
       try {
         const parsedDomains = JSON.parse(req.body.domains);
-        console.log(`[API APPS] Parsed domains:`, parsedDomains);
+        if (VERBOSE_LOGGING) console.log(`[API APPS] Parsed domains:`, parsedDomains);
         updateReq.domains = parsedDomains;
       } catch (_) {
-        console.log(`[API APPS] Failed to parse domains:`, req.body.domains);
+        if (VERBOSE_LOGGING) console.log(`[API APPS] Failed to parse domains:`, req.body.domains);
       }
     }
     // Set canInsertEverywhere in options
@@ -581,7 +581,7 @@ router.put('/:clientId', requireAuth, appLogoUpload.single('custom_logo_file'), 
       updateReq.customLogoFile = fs.createReadStream(req.file.path);
     }
 
-    console.log(`[API APPS] Sending update request:`, JSON.stringify(updateReq, null, 2));
+    if (VERBOSE_LOGGING) console.log(`[API APPS] Sending update request:`, JSON.stringify(updateReq, null, 2));
 
     const response = await apiCall(req, 'ApiAppApi', 'apiAppUpdate', [clientId, updateReq], {
       method: 'PUT',
@@ -593,14 +593,14 @@ router.put('/:clientId', requireAuth, appLogoUpload.single('custom_logo_file'), 
     // Invalidate apps cache so next list fetch picks up changes
     if (req.session.appsCache) {
       req.session.appsCache.timestamp = 0;
-      console.log(`[API APPS] Cache invalidated for session`);
+      if (VERBOSE_LOGGING) console.log(`[API APPS] Cache invalidated for session`);
     }
 
     const app = response.body?.apiApp;
     const warnings = response.body?.warnings || [];
-    console.log(`[API APPS] Update successful. Returned domains:`, app?.domains);
+    if (VERBOSE_LOGGING) console.log(`[API APPS] Update successful. Returned domains:`, app?.domains);
     if (warnings.length > 0) {
-      console.log(`[API APPS] API warnings:`, warnings);
+      if (VERBOSE_LOGGING) console.log(`[API APPS] API warnings:`, warnings);
     }
 
     // Save session to persist cache invalidation
@@ -610,7 +610,7 @@ router.put('/:clientId', requireAuth, appLogoUpload.single('custom_logo_file'), 
           console.error(`[API APPS] Session save failed:`, err);
           reject(err);
         } else {
-          console.log(`[API APPS] Session saved successfully`);
+          if (VERBOSE_LOGGING) console.log(`[API APPS] Session saved successfully`);
           resolve();
         }
       });
@@ -669,17 +669,17 @@ router.put('/:clientId', requireAuth, appLogoUpload.single('custom_logo_file'), 
 router.delete('/:clientId', requireAuth, async (req, res) => {
   const { clientId } = req.params;
 
-  console.log(`[API APPS] DELETE request for clientId: ${clientId}`);
+  if (VERBOSE_LOGGING) console.log(`[API APPS] DELETE request for clientId: ${clientId}`);
 
   try {
     // Delete the app via Dropbox Sign API
-    console.log(`[API APPS] Calling apiAppDelete for: ${clientId}`);
+    if (VERBOSE_LOGGING) console.log(`[API APPS] Calling apiAppDelete for: ${clientId}`);
     const response = await apiCall(req, 'ApiAppApi', 'apiAppDelete', [clientId], {
       method: 'DELETE',
       endpoint: `/api_app/${clientId}`
     });
 
-    console.log(`[API APPS] Successfully deleted app: ${clientId}`);
+    if (VERBOSE_LOGGING) console.log(`[API APPS] Successfully deleted app: ${clientId}`);
 
     // Invalidate cache
     if (req.session.appsCache) {

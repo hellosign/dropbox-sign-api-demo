@@ -38,7 +38,7 @@ export async function requireAdmin(req, res, next) {
   const adminEmails = await getAdminEmails(redisClient);
 
   if (!isAdmin(userEmail, adminEmails)) {
-    console.warn(`[ADMIN] Access denied for ${userEmail}`);
+    if (VERBOSE_LOGGING) console.warn(`[ADMIN] Access denied for ${userEmail}`);
     return res.status(403).json({
       error: 'Admin access required',
       message: 'You do not have permission to access this page.'

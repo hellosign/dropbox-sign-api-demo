@@ -11,11 +11,8 @@ const envFile = IS_PRODUCTION ? '.env.production' : '.env.development';
 // Try to load environment-specific file, fallback to .env if it doesn't exist
 if (fs.existsSync(envFile)) {
   config({ path: envFile });
-  console.log(`[ENV] Loaded ${envFile}`);
 } else {
-  // Fallback to .env (backward compatible)
   config();
-  console.log('[ENV] Loaded .env (default)');
 }
 
 // NOW import everything else (after env is loaded)
@@ -491,7 +488,7 @@ async function invalidateAllSessionsForAccount(accountId, exceptSessionId = null
     }
   } while (cursor !== '0');
 
-  console.log(`[SESSION CLEANUP] Invalidated ${deletedCount} sessions for account ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[SESSION CLEANUP] Invalidated ${deletedCount} sessions for account ${accountId}`);
   return deletedCount;
 }
 
@@ -1007,7 +1004,7 @@ function getTestMode(clientId, req = null) {
 const settingsPath = path.join(process.cwd(), "config", "settings.json");
 function saveSettings() {
   // Phase 3: Deprecated - settings now saved via setSettings() DAL function
-  console.warn('[DEPRECATED] saveSettings() called - use setSettings(accountId, settings) instead');
+  if (VERBOSE_LOGGING) console.warn('[DEPRECATED] saveSettings() called - use setSettings(accountId, settings) instead');
 }
 let portalSettings = {
   fullscreenSigning: false,
@@ -1033,7 +1030,7 @@ try {
 }
 function saveFormFieldsDefaults(fields) {
   // Phase 3: Deprecated - use setFormFieldsDefaults() DAL function
-  console.warn('[DEPRECATED] saveFormFieldsDefaults() called - use setFormFieldsDefaults(accountId, fields) instead');
+  if (VERBOSE_LOGGING) console.warn('[DEPRECATED] saveFormFieldsDefaults() called - use setFormFieldsDefaults(accountId, fields) instead');
 }
 
 //
@@ -1123,7 +1120,7 @@ async function publishThemeToAllUsers(themeId, themeData, overwriteExisting = fa
     }
   }
 
-  console.log(`[ADMIN] Published theme ${themeId} to ${publishedCount} users, skipped ${skippedCount}`);
+  if (VERBOSE_LOGGING) console.log(`[ADMIN] Published theme ${themeId} to ${publishedCount} users, skipped ${skippedCount}`);
   return { publishedCount, skippedCount, totalUsers: users.length };
 }
 
@@ -1145,12 +1142,12 @@ async function removeThemeFromAllUsers(themeId) {
         const firstTheme = Object.keys(remainingThemes)[0];
         settings.selectedTheme = firstTheme || 'default';
         await setSettings(user.accountId, settings);
-        console.log(`[ADMIN] Reset selected theme for user ${user.accountId} from ${themeId} to ${settings.selectedTheme}`);
+        if (VERBOSE_LOGGING) console.log(`[ADMIN] Reset selected theme for user ${user.accountId} from ${themeId} to ${settings.selectedTheme}`);
       }
     }
   }
 
-  console.log(`[ADMIN] Removed theme ${themeId} from ${removedCount} users`);
+  if (VERBOSE_LOGGING) console.log(`[ADMIN] Removed theme ${themeId} from ${removedCount} users`);
   return { removedCount, totalUsers: users.length };
 }
 
@@ -1876,7 +1873,7 @@ app.post('/api/log-error', express.json(), (req, res) => {
     error.userAgent ? `\n  User Agent: ${error.userAgent}` : '',
   ].filter(Boolean).join('');
 
-  console.error(logMessage);
+  if (VERBOSE_LOGGING) console.error(logMessage);
 
   res.status(200).json({ logged: true });
 });
@@ -1905,7 +1902,7 @@ function rotateLogFile(logFile, maxFiles) {
   const rotatedLog = path.join(logDir, `${logBaseName}.1.log`);
   fs.renameSync(logFile, rotatedLog);
 
-  console.log(`[LOG] Rotated browser console log (size exceeded threshold)`);
+  if (VERBOSE_LOGGING) console.log(`[LOG] Rotated browser console log (size exceeded threshold)`);
 }
 
 // POST /api/log-console - Log browser console output to file with rotation
@@ -1921,8 +1918,7 @@ app.post('/api/log-console', express.json(), async (req, res) => {
     log.url ? `\n  URL: ${log.url}` : ''
   ].filter(Boolean).join(' ');
 
-  // Write to console (for PM2 logs)
-  console.log(logMessage);
+  if (VERBOSE_LOGGING) console.log(logMessage);
 
   // Get rotation settings from Redis
   let maxSizeBytes = 10 * 1024 * 1024; // Default 10MB
@@ -1986,7 +1982,7 @@ app.get('/api/tooltips/config', requireAuth, async (req, res) => {
         const defaults = getDefaultTooltipConfig();
         await redisClient.set('system:tooltips', JSON.stringify(defaults));
         config = JSON.stringify(defaults);
-        console.log('[TOOLTIP] Initialized tooltip configuration with defaults');
+        if (VERBOSE_LOGGING) console.log('[TOOLTIP] Initialized tooltip configuration with defaults');
       }
       data = JSON.parse(config);
     }
