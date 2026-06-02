@@ -8,7 +8,6 @@
     "node": ">=22.22.2"
   },
   "scripts": {
-    "prestart": "node scripts/check-env.js",
     "start": "node server.js"
   },
   "dependencies": {

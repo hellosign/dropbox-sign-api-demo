@@ -58,7 +58,7 @@ This demo portal lets you experience the full power of Dropbox Sign APIs in real
 
 ---
 
-## 🐳 Docker Setup (Recommended)
+## Docker Setup (Recommended)
 
 **Why Docker?**
 - ✅ One command to start everything (app + Redis)
@@ -168,7 +168,7 @@ All configuration is done via `docker-compose.yml`. No `.env` file needed!
 
 ---
 
-## 💻 Native Setup
+## Native Setup
 
 **Prerequisites:**
 - **Node.js 22+** and npm
