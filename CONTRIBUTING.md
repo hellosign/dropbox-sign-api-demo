@@ -16,7 +16,7 @@ Thank you for your interest in contributing to the Dropbox Sign Demo Portal! Thi
 1. **Clone the repository**
    ```bash
    git clone https://github.com/hellosign/dropbox-sign-api-demo.git
-   cd dbx-sign-api-demo-public
+   cd dropbox-sign-api-demo
    ```
 
 2. **Install dependencies**
@@ -61,7 +61,7 @@ The application will run at `http://localhost:3001`
 ## Project Structure
 
 ```
-dbx-sign-api-demo-public/
+dropbox-sign-api-demo/
 ├── server.js              # Main Express application
 ├── src/
 │   ├── routes/           # Route handlers

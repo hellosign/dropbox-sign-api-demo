@@ -79,7 +79,7 @@ This demo portal lets you experience the full power of Dropbox Sign APIs in real
 
 ```bash
 git clone https://github.com/hellosign/dropbox-sign-api-demo.git
-cd dbx-sign-api-demo-public
+cd dropbox-sign-api-demo
 ```
 
 #### 2. Configure Admin Email
@@ -182,7 +182,7 @@ All configuration is done via `docker-compose.yml`. No `.env` file needed!
 
 ```bash
 git clone https://github.com/hellosign/dropbox-sign-api-demo.git
-cd dbx-sign-api-demo-public
+cd dropbox-sign-api-demo
 ```
 
 #### 2. Install Dependencies

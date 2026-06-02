@@ -98,7 +98,7 @@ cd projects
 
 ```bash
 git clone https://github.com/hellosign/dropbox-sign-api-demo.git
-cd dbx-sign-api-demo-public
+cd dropbox-sign-api-demo
 ```
 
 ---
@@ -111,10 +111,10 @@ If you don't want to install Git:
 2. Click the green **"Code"** button
 3. Click **"Download ZIP"**
 4. Extract the ZIP file to your desired location
-   - Example: `C:\Users\YourName\Documents\dbx-sign-api-demo-public`
+   - Example: `C:\Users\YourName\Documents\dropbox-sign-api-demo`
 5. Open Command Prompt and navigate to the extracted folder:
    ```bash
-   cd C:\Users\YourName\Documents\dbx-sign-api-demo-public
+   cd C:\Users\YourName\Documents\dropbox-sign-api-demo
    ```
 
 ---

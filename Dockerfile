@@ -16,5 +16,5 @@ COPY . .
 # Expose port
 EXPOSE 3001
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application (skip prestart setup wizard in Docker)
+CMD ["node", "server.js"]
