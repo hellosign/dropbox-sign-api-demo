@@ -1,17 +1,17 @@
 # Dropbox Sign API Demo Portal
 
-**Bringing Sign APIs to Life** - A comprehensive demo platform that helps Solutions Consultants showcase Dropbox Sign API capabilities to accelerate deal closures.
+**Bringing Sign APIs to Life** - A comprehensive demo platform for exploring and showcasing Dropbox Sign API capabilities.
 
 ---
 
 ## ⚠️ Important Notice
 
-**This software is intended for internal use only.**
+**This software is intended for demonstration and testing purposes only.**
 
 This demo portal is designed for use within controlled environments such as:
-- Internal demonstrations and testing
-- Proof-of-concept deployments on internal networks
-- Sales engineering demos in secure settings
+- Partner demonstrations and testing
+- Proof-of-concept deployments
+- API feature exploration and integration planning
 
 **⚠️ NOT RECOMMENDED for public internet deployment.** This application is not hardened for public-facing production use and should only be deployed in trusted, internal environments.
 
@@ -21,13 +21,13 @@ For production-grade implementations, please consult the [Dropbox Sign API docum
 
 ## 🎯 Purpose
 
-This demo portal enables Solutions Consultants to demonstrate the full power of Dropbox Sign APIs in real-time. Instead of explaining APIs through slides, show prospects exactly how signature workflows integrate into their applications - from template creation to embedded signing to webhook notifications.
+This demo portal lets you experience the full power of Dropbox Sign APIs in real-time. Instead of reading documentation alone, see exactly how signature workflows integrate into applications - from template creation to embedded signing to webhook notifications.
 
 **Built for:**
-- Live customer demos and presentations
-- Proof-of-concept demonstrations
+- Live demonstrations and presentations
+- Proof-of-concept development
 - API feature exploration and testing
-- Technical sales enablement
+- Integration planning
 
 ---
 
