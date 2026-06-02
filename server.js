@@ -40,7 +40,7 @@ import { doubleCsrf } from 'csrf-csrf';
 import cookieParser from 'cookie-parser';
 import { body, query, param, validationResult } from 'express-validator';
 // Utility imports
-import { encryptApiKey, decryptApiKey, hashApiKey, verifyWebhookSignature } from './src/utils/crypto.js';
+import { hashApiKey, verifyWebhookSignature } from './src/utils/crypto.js';
 import { redactSensitiveData, sanitizeError } from './src/utils/validation.js';
 import { buildRequestDetail } from './src/utils/logging.js';
 // API abstraction service
@@ -113,7 +113,7 @@ app.set('trust proxy', 1);
 // CLIENT_ID, TEMPLATE_IDS, API_KEY, ALLOWED_DOMAINS, ALLOWED_EMAILS, ADMIN_EMAILS
 // NODE_ENV, IS_PRODUCTION, IS_DEVELOPMENT, PORT
 
-// API keys now stored in session (req.session.apiKey) - no in-memory Map needed
+// API keys stored browser-side only (sessionStorage) - sent per-request via X-Api-Key header
 // getUserApiClient is now imported from /src/services/dropbox-sign.js
 
 /**
@@ -257,14 +257,6 @@ if (redisUrl) {
     redisClient.on('error', () => {});
     await redisClient.connect();
     console.log(`✓ Redis connected for session persistence (database ${redisDb})`);
-
-    // Persist ENCRYPTION_KEY in Redis so it survives container restarts
-    const storedKey = await redisClient.get('system:encryption_key');
-    if (storedKey) {
-      process.env.ENCRYPTION_KEY = storedKey;
-    } else {
-      await redisClient.set('system:encryption_key', process.env.ENCRYPTION_KEY);
-    }
 
     // Initialize API abstraction service with Redis dependencies
     initDropboxSignService({

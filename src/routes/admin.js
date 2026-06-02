@@ -1,6 +1,6 @@
 // src/routes/admin.js
 import { Router } from 'express';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requireSession, requireAdmin } from '../middleware/auth.js';
 import { IS_PRODUCTION } from '../../server.js';
 import fs from 'fs/promises';
 import path from 'path';
@@ -15,7 +15,7 @@ const router = Router();
  * GET /admin - Admin dashboard page
  * Renders admin interface for managing users
  */
-router.get('/', requireAuth, requireAdmin, (req, res) => {
+router.get('/', requireSession, requireAdmin, (req, res) => {
   res.render('admin', {
     userEmail: req.session.accountInfo?.email_address,
     isAdmin: true
@@ -26,7 +26,7 @@ router.get('/', requireAuth, requireAdmin, (req, res) => {
  * GET /admin/api/users - List all users
  * Returns list of all active and inactive users
  */
-router.get('/api/users', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/users', requireSession, requireAdmin, async (req, res) => {
   const { getAllUsers } = req.app.locals.redisHelpers;
 
   try {
@@ -52,7 +52,7 @@ router.get('/api/users', requireAuth, requireAdmin, async (req, res) => {
  * GET /admin/api/users/:accountId - Get specific user details
  * Returns detailed user data from Redis
  */
-router.get('/api/users/:accountId', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/users/:accountId', requireSession, requireAdmin, async (req, res) => {
   const { getUserDataKeys, getAllActiveSessions } = req.app.locals.redisHelpers;
 
   try {
@@ -89,7 +89,7 @@ router.get('/api/users/:accountId', requireAuth, requireAdmin, async (req, res) 
  * DELETE /admin/api/sessions/:sessionId - Force logout a user
  * Terminates a specific user session
  */
-router.delete('/api/sessions/:sessionId', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/api/sessions/:sessionId', requireSession, requireAdmin, async (req, res) => {
   const redisClient = req.app.locals.redisClient;
 
   try {
@@ -136,7 +136,7 @@ router.delete('/api/sessions/:sessionId', requireAuth, requireAdmin, async (req,
  * GET /admin/api/stats - System statistics
  * Returns system-wide statistics and Redis info
  */
-router.get('/api/stats', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/stats', requireSession, requireAdmin, async (req, res) => {
   const { getAllUsers } = req.app.locals.redisHelpers;
   const redisClient = req.app.locals.redisClient;
 
@@ -244,7 +244,7 @@ router.get('/api/stats', requireAuth, requireAdmin, async (req, res) => {
  * DELETE /admin/api/users/:accountId/data/:dataType - Clear specific user data
  * Removes specific data type for a user (e.g., themes, settings)
  */
-router.delete('/api/users/:accountId/data/:dataType', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/api/users/:accountId/data/:dataType', requireSession, requireAdmin, async (req, res) => {
   const redisClient = req.app.locals.redisClient;
   const { hasExistingData, setOnboardingStatus } = req.app.locals.redisHelpers;
 
@@ -287,7 +287,7 @@ router.delete('/api/users/:accountId/data/:dataType', requireAuth, requireAdmin,
  * DELETE /admin/api/users/:accountId - Delete user completely
  * Removes all user data and sessions from Redis
  */
-router.delete('/api/users/:accountId', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/api/users/:accountId', requireSession, requireAdmin, async (req, res) => {
   const { getAllActiveSessions, deleteUserCompletely } = req.app.locals.redisHelpers;
   const redisClient = req.app.locals.redisClient;
 
@@ -448,7 +448,7 @@ router.post('/api/clear-logs', requireAdmin, async (req, res) => {
 /**
  * GET /admin/tooltip-management - Tooltip management page
  */
-router.get('/tooltip-management', requireAuth, requireAdmin, (req, res) => {
+router.get('/tooltip-management', requireSession, requireAdmin, (req, res) => {
   res.render('admin-tooltip-management', {
     userEmail: req.session.accountInfo?.email_address,
     isAdmin: true
@@ -458,7 +458,7 @@ router.get('/tooltip-management', requireAuth, requireAdmin, (req, res) => {
 /**
  * GET /admin/api/tooltips - Get all tooltip configuration
  */
-router.get('/api/tooltips', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/tooltips', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
 
   try {
@@ -486,7 +486,7 @@ router.get('/api/tooltips', requireAuth, requireAdmin, async (req, res) => {
  * PUT /admin/api/tooltips/settings - Update global tooltip settings
  * NOTE: Must come BEFORE /:tooltipId route to avoid matching "settings" as a tooltip ID
  */
-router.put('/api/tooltips/settings', requireAuth, requireAdmin, async (req, res) => {
+router.put('/api/tooltips/settings', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { enabled, defaultPosition, showDelay, hideDelay } = req.body;
 
@@ -522,7 +522,7 @@ router.put('/api/tooltips/settings', requireAuth, requireAdmin, async (req, res)
  * PUT /admin/api/tooltips/bulk - Bulk update tooltips
  * NOTE: Must come BEFORE /:tooltipId route to avoid matching "bulk" as a tooltip ID
  */
-router.put('/api/tooltips/bulk', requireAuth, requireAdmin, async (req, res) => {
+router.put('/api/tooltips/bulk', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { tooltipIds, updates } = req.body;
 
@@ -568,7 +568,7 @@ router.put('/api/tooltips/bulk', requireAuth, requireAdmin, async (req, res) => 
  * PUT /admin/api/tooltips/:tooltipId - Update single tooltip
  * NOTE: Must come AFTER /settings and /bulk routes (more specific routes first)
  */
-router.put('/api/tooltips/:tooltipId', requireAuth, requireAdmin, async (req, res) => {
+router.put('/api/tooltips/:tooltipId', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { tooltipId } = req.params;
   const { text, position, enabled, sourceUrl } = req.body;
@@ -625,7 +625,7 @@ router.put('/api/tooltips/:tooltipId', requireAuth, requireAdmin, async (req, re
 /**
  * POST /admin/api/tooltips/reset - Reset all tooltips to defaults
  */
-router.post('/api/tooltips/reset', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/tooltips/reset', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
 
   try {
@@ -649,7 +649,7 @@ router.post('/api/tooltips/reset', requireAuth, requireAdmin, async (req, res) =
 /**
  * GET /admin/access-control - Access control management page
  */
-router.get('/access-control', requireAuth, requireAdmin, (req, res) => {
+router.get('/access-control', requireSession, requireAdmin, (req, res) => {
   res.render('admin-access-control', {
     userEmail: req.session.accountInfo?.email_address,
     isAdmin: true
@@ -659,7 +659,7 @@ router.get('/access-control', requireAuth, requireAdmin, (req, res) => {
 /**
  * GET /admin/security - Security events dashboard
  */
-router.get('/security', requireAuth, requireAdmin, (req, res) => {
+router.get('/security', requireSession, requireAdmin, (req, res) => {
   res.render('admin-security', {
     userEmail: req.session.accountInfo?.email_address,
     isAdmin: true
@@ -669,7 +669,7 @@ router.get('/security', requireAuth, requireAdmin, (req, res) => {
 /**
  * GET /admin/api/security/events - Get security events
  */
-router.get('/api/security/events', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/security/events', requireSession, requireAdmin, async (req, res) => {
   const { getSecurityEvents } = req.app.locals.securityLogger;
 
   try {
@@ -690,7 +690,7 @@ router.get('/api/security/events', requireAuth, requireAdmin, async (req, res) =
 /**
  * GET /admin/api/security/stats - Get security statistics
  */
-router.get('/api/security/stats', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/security/stats', requireSession, requireAdmin, async (req, res) => {
   const { getSecurityStats } = req.app.locals.securityLogger;
 
   try {
@@ -709,7 +709,7 @@ router.get('/api/security/stats', requireAuth, requireAdmin, async (req, res) =>
 /**
  * POST /admin/api/security/block-ip - Manually block an IP
  */
-router.post('/api/security/block-ip', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/security/block-ip', requireSession, requireAdmin, async (req, res) => {
   const { blockIP } = req.app.locals.securityLogger;
 
   try {
@@ -734,7 +734,7 @@ router.post('/api/security/block-ip', requireAuth, requireAdmin, async (req, res
 /**
  * POST /admin/api/security/clear-logs - Clear all security logs
  */
-router.post('/api/security/clear-logs', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/security/clear-logs', requireSession, requireAdmin, async (req, res) => {
   const redisClient = req.app.locals.redisClient;
 
   try {
@@ -793,7 +793,7 @@ router.post('/api/security/clear-logs', requireAuth, requireAdmin, async (req, r
 /**
  * GET /admin/api/access-control - Get current access control settings
  */
-router.get('/api/access-control', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/access-control', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { getAllActiveSessions } = req.app.locals.redisHelpers;
   const { getAllowedDomains, getAllowedEmails, getAdminEmails, ALLOWED_DOMAINS, ALLOWED_EMAILS, ADMIN_EMAILS } = await import('../config/constants.js');
@@ -853,7 +853,7 @@ router.get('/api/access-control', requireAuth, requireAdmin, async (req, res) =>
 /**
  * POST /admin/api/access-control/add-domain - Add allowed domain
  */
-router.post('/api/access-control/add-domain', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/add-domain', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
   const { getAllowedDomains } = await import('../config/constants.js');
@@ -914,7 +914,7 @@ router.post('/api/access-control/add-domain', requireAuth, requireAdmin, async (
 /**
  * POST /admin/api/access-control/remove-domain - Remove allowed domain
  */
-router.post('/api/access-control/remove-domain', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/remove-domain', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
   const { getAllowedDomains } = await import('../config/constants.js');
@@ -978,7 +978,7 @@ router.post('/api/access-control/remove-domain', requireAuth, requireAdmin, asyn
 /**
  * POST /admin/api/access-control/add-email - Add allowed email
  */
-router.post('/api/access-control/add-email', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/add-email', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
   const { getAllowedEmails } = await import('../config/constants.js');
@@ -1039,7 +1039,7 @@ router.post('/api/access-control/add-email', requireAuth, requireAdmin, async (r
 /**
  * POST /admin/api/access-control/remove-email - Remove allowed email
  */
-router.post('/api/access-control/remove-email', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/remove-email', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
   const { getAllowedEmails } = await import('../config/constants.js');
@@ -1102,7 +1102,7 @@ router.post('/api/access-control/remove-email', requireAuth, requireAdmin, async
 /**
  * POST /admin/api/access-control/force-logout-domain - Force logout all sessions from domain
  */
-router.post('/api/access-control/force-logout-domain', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/force-logout-domain', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { getAllActiveSessions } = req.app.locals.redisHelpers;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
@@ -1173,7 +1173,7 @@ router.post('/api/access-control/force-logout-domain', requireAuth, requireAdmin
 /**
  * POST /admin/api/access-control/force-logout-email - Force logout specific email
  */
-router.post('/api/access-control/force-logout-email', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/force-logout-email', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { getAllActiveSessions } = req.app.locals.redisHelpers;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
@@ -1239,7 +1239,7 @@ router.post('/api/access-control/force-logout-email', requireAuth, requireAdmin,
 /**
  * POST /admin/api/access-control/add-admin - Add admin email
  */
-router.post('/api/access-control/add-admin', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/add-admin', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
   const { getAdminEmails } = await import('../config/constants.js');
@@ -1300,7 +1300,7 @@ router.post('/api/access-control/add-admin', requireAuth, requireAdmin, async (r
 /**
  * POST /admin/api/access-control/remove-admin - Remove admin email
  */
-router.post('/api/access-control/remove-admin', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/access-control/remove-admin', requireSession, requireAdmin, async (req, res) => {
   const { redisClient } = req.app.locals;
   const { logSecurityEvent } = req.app.locals.securityLogger || {};
   const { getAdminEmails } = await import('../config/constants.js');
@@ -1368,7 +1368,7 @@ router.post('/api/access-control/remove-admin', requireAuth, requireAdmin, async
 /**
  * GET /admin/theme-management - Theme management page
  */
-router.get('/theme-management', requireAuth, requireAdmin, (req, res) => {
+router.get('/theme-management', requireSession, requireAdmin, (req, res) => {
   res.render('admin-theme-management', {
     userEmail: req.session.accountInfo?.email_address,
     isAdmin: true
@@ -1378,7 +1378,7 @@ router.get('/theme-management', requireAuth, requireAdmin, (req, res) => {
 /**
  * GET /admin/api/themes/defaults - Get all default themes
  */
-router.get('/api/themes/defaults', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/themes/defaults', requireSession, requireAdmin, async (req, res) => {
   try {
     const themesPath = path.join(process.cwd(), 'config/themes.json');
     const themesData = await fs.readFile(themesPath, 'utf-8');
@@ -1400,7 +1400,7 @@ router.get('/api/themes/defaults', requireAuth, requireAdmin, async (req, res) =
 /**
  * PUT /admin/api/themes/defaults/:themeId - Add or update a theme in defaults
  */
-router.put('/api/themes/defaults/:themeId', requireAuth, requireAdmin, async (req, res) => {
+router.put('/api/themes/defaults/:themeId', requireSession, requireAdmin, async (req, res) => {
   try {
     const { themeId } = req.params;
     const { themeData } = req.body;
@@ -1455,7 +1455,7 @@ router.put('/api/themes/defaults/:themeId', requireAuth, requireAdmin, async (re
 /**
  * DELETE /admin/api/themes/defaults/:themeId - Remove a theme from defaults
  */
-router.delete('/api/themes/defaults/:themeId', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/api/themes/defaults/:themeId', requireSession, requireAdmin, async (req, res) => {
   try {
     const { themeId } = req.params;
 
@@ -1501,7 +1501,7 @@ router.delete('/api/themes/defaults/:themeId', requireAuth, requireAdmin, async 
 /**
  * GET /admin/api/themes/user-count/:themeId - Count users who have a theme
  */
-router.get('/api/themes/user-count/:themeId', requireAuth, requireAdmin, async (req, res) => {
+router.get('/api/themes/user-count/:themeId', requireSession, requireAdmin, async (req, res) => {
   try {
     const { themeId } = req.params;
     const { getAllUsers, getThemes } = req.app.locals.redisHelpers;
@@ -1533,7 +1533,7 @@ router.get('/api/themes/user-count/:themeId', requireAuth, requireAdmin, async (
 /**
  * POST /admin/api/themes/publish/:themeId - Publish a theme to all users
  */
-router.post('/api/themes/publish/:themeId', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/themes/publish/:themeId', requireSession, requireAdmin, async (req, res) => {
   try {
     const { themeId } = req.params;
     const { themeData, overwriteExisting } = req.body;
@@ -1566,7 +1566,7 @@ router.post('/api/themes/publish/:themeId', requireAuth, requireAdmin, async (re
 /**
  * DELETE /admin/api/themes/remove-from-users/:themeId - Remove a theme from all users
  */
-router.delete('/api/themes/remove-from-users/:themeId', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/api/themes/remove-from-users/:themeId', requireSession, requireAdmin, async (req, res) => {
   try {
     const { themeId } = req.params;
     const { removeThemeFromAllUsers } = req.app.locals.redisHelpers;
@@ -1590,7 +1590,7 @@ router.delete('/api/themes/remove-from-users/:themeId', requireAuth, requireAdmi
 /**
  * POST /admin/api/themes/import - Import a theme from JSON file
  */
-router.post('/api/themes/import', requireAuth, requireAdmin, async (req, res) => {
+router.post('/api/themes/import', requireSession, requireAdmin, async (req, res) => {
   try {
     const { themeData, addToDefaults, publishToUsers } = req.body;
 

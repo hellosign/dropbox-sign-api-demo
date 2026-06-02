@@ -4,17 +4,16 @@ import { VERBOSE_LOGGING } from '../config/security.js';
 
 /**
  * Require authentication middleware
- * Checks for API key in session
+ * Checks for authenticated session (accountInfo) and API key in request header.
+ * API keys are stored browser-side only (sessionStorage) and sent per-request.
  */
 export function requireAuth(req, res, next) {
-  if (VERBOSE_LOGGING) console.log('[AUTH] Path:', req.path, '| Has session:', !!req.session, '| Has API key:', !!req.session?.apiKey);
+  if (VERBOSE_LOGGING) console.log('[AUTH] Path:', req.path, '| Has session:', !!req.session, '| Has accountInfo:', !!req.session?.accountInfo);
 
-  if (!req.session.apiKey) {
-    // Use originalUrl for path checks (req.path is relative to router mount point)
+  if (!req.session.accountInfo) {
     const fullPath = req.originalUrl || req.path;
     const isAjax = req.xhr || req.headers.accept?.includes('application/json');
-    if (VERBOSE_LOGGING) console.log('[AUTH] No API key found, fullPath:', fullPath, '| isAjax:', isAjax);
-    // For API requests (AJAX), fetch calls, and SSE streams, return 401 instead of redirect
+    if (VERBOSE_LOGGING) console.log('[AUTH] No accountInfo found, fullPath:', fullPath, '| isAjax:', isAjax);
     if (isAjax || fullPath.startsWith('/api') || fullPath.startsWith('/events/') || fullPath.startsWith('/themes') || fullPath.startsWith('/signatures') || fullPath.startsWith('/settings')) {
       if (VERBOSE_LOGGING) console.log('[AUTH] Returning 401 JSON');
       return res.status(401).json({ error: 'Not authenticated. Please provide API key.' });
@@ -22,9 +21,36 @@ export function requireAuth(req, res, next) {
     if (VERBOSE_LOGGING) console.log('[AUTH] Redirecting to /login');
     return res.redirect('/login');
   }
+
+  // Extract API key from request header (browser sends it per-request)
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey) {
+    const fullPath = req.originalUrl || req.path;
+    const isAjax = req.xhr || req.headers.accept?.includes('application/json');
+    if (isAjax || fullPath.startsWith('/api') || fullPath.startsWith('/events/') || fullPath.startsWith('/themes') || fullPath.startsWith('/signatures') || fullPath.startsWith('/settings')) {
+      return res.status(401).json({ error: 'API key required. Please re-login.' });
+    }
+    return res.redirect('/login');
+  }
+
+  // Attach API key to request for use by route handlers (never stored)
+  req.apiKey = apiKey;
+
   if (VERBOSE_LOGGING) console.log('[AUTH] Authenticated as:', req.session.accountInfo?.email_address);
   initSessionData(req.session);
-  // Update last activity timestamp on each authenticated request
+  req.session.lastActivity = new Date().toISOString();
+  next();
+}
+
+/**
+ * Require session-only authentication (no API key needed)
+ * Used for endpoints like SSE that can't send custom headers
+ */
+export function requireSession(req, res, next) {
+  if (!req.session.accountInfo) {
+    return res.status(401).json({ error: 'Not authenticated.' });
+  }
+  initSessionData(req.session);
   req.session.lastActivity = new Date().toISOString();
   next();
 }

@@ -1,6 +1,5 @@
 // src/services/dropbox-sign.js
 import * as DropboxSign from '@dropbox/sign';
-import { decryptApiKey } from '../utils/crypto.js';
 import { buildRequestDetail } from '../utils/logging.js';
 import { redactSensitiveData } from '../utils/validation.js';
 
@@ -84,14 +83,10 @@ export async function apiCall(req, apiClassName, method, args = [], logMeta = {}
   const startTime = Date.now();
 
   try {
-    // Get and decrypt API key
-    const encryptedKey = req.session.apiKey;
-    if (!encryptedKey) {
-      throw new Error('User not authenticated - API key required');
-    }
-    const apiKey = decryptApiKey(encryptedKey);
+    // Get API key from request (set by requireAuth middleware from X-Api-Key header)
+    const apiKey = req.apiKey;
     if (!apiKey) {
-      throw new Error('Failed to decrypt API key - please re-login');
+      throw new Error('User not authenticated - API key required');
     }
 
     // Create API client
@@ -150,19 +145,13 @@ export async function apiCall(req, apiClassName, method, args = [], logMeta = {}
  * @deprecated Use apiCall() instead for automatic logging
  */
 export async function getUserApiClient(req, ApiClass) {
-  const encryptedKey = req.session.apiKey;
-  if (!encryptedKey) {
+  const apiKey = req.apiKey;
+  if (!apiKey) {
     throw new Error('User not authenticated - API key required');
   }
 
-  // Decrypt API key before using it
-  const apiKey = decryptApiKey(encryptedKey);
-  if (!apiKey) {
-    throw new Error('Failed to decrypt API key - please re-login');
-  }
-
   const client = new ApiClass();
-  client.username = apiKey;  // API key authentication uses username field
+  client.username = apiKey;
   return client;
 }
 

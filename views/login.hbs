@@ -224,39 +224,45 @@
     </div>
 
     <div class="security-note">
-      🔒 {{__ "login.security_note"}}
+      ⚠️ <strong>Demo/Testing Only</strong> — Do not use production API keys or sensitive data.
+      Your API key is stored only in your browser and is never saved on the server.
     </div>
   </div>
 
   <script>
-    // Client-side validation
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
+    // Clear any stored API key on login page (e.g., after logout)
+    sessionStorage.removeItem('dbxSignApiKey');
+
+    // Client-side validation and login via fetch (API key stays browser-side)
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
       const apiKey = document.getElementById('apiKey').value.trim();
       const honeypot = document.getElementById('email_check').value;
       const errorDiv = document.getElementById('clientError');
+      const submitBtn = this.querySelector('.login-button');
 
       // Hide previous errors
       errorDiv.style.display = 'none';
 
-      // If honeypot is filled, let it submit (server will log as bot)
+      // If honeypot is filled, submit normally (server will log as bot)
       if (honeypot) {
-        return true;
+        this.submit();
+        return;
       }
 
       // Check length (must be exactly 64 characters)
       if (apiKey.length !== 64) {
-        e.preventDefault();
         errorDiv.textContent = 'Invalid API key';
         errorDiv.style.display = 'block';
-        return false;
+        return;
       }
 
       // Check format (lowercase alphanumeric only)
       if (!/^[a-z0-9]+$/.test(apiKey)) {
-        e.preventDefault();
         errorDiv.textContent = 'Invalid API key';
         errorDiv.style.display = 'block';
-        return false;
+        return;
       }
 
       // Check spam patterns (basic client-side check)
@@ -264,15 +270,41 @@
       const lowerKey = apiKey.toLowerCase();
       for (const pattern of spamPatterns) {
         if (lowerKey.includes(pattern)) {
-          e.preventDefault();
           errorDiv.textContent = 'Invalid API key';
           errorDiv.style.display = 'block';
-          return false;
+          return;
         }
       }
 
-      // Passed all checks
-      return true;
+      // Submit via fetch — server validates but does NOT store the API key
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Authenticating...';
+
+      try {
+        const resp = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ apiKey, email_check: honeypot })
+        });
+
+        const data = await resp.json();
+
+        if (data.success) {
+          // Store API key in browser only (never persisted on server)
+          sessionStorage.setItem('dbxSignApiKey', data.apiKey);
+          window.location.href = '/';
+        } else {
+          errorDiv.textContent = data.error || 'Login failed';
+          errorDiv.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = '{{__ "login.button"}}';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Connection error. Please try again.';
+        errorDiv.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = '{{__ "login.button"}}';
+      }
     });
   </script>
   <script src="/tooltip.js"></script>

@@ -1,7 +1,7 @@
 // src/routes/api-logs.js
 import { Router } from 'express';
 import express from 'express';
-import { requireAuth } from '../middleware/auth.js';
+import { requireSession } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -9,7 +9,7 @@ const router = Router();
  * GET /api-logs - Get API logs for current user
  * Returns per-user API logs from Redis
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireSession, async (req, res) => {
   // Prevent browser caching of user-specific data
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
@@ -24,7 +24,7 @@ router.get('/', requireAuth, async (req, res) => {
  * DELETE /api-logs - Clear API logs for current user
  * Removes all logs from Redis for the authenticated user
  */
-router.delete('/', requireAuth, express.json(), async (req, res) => {
+router.delete('/', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const redisClient = req.app.locals.redisClient;
   const { clearApiLogs } = req.app.locals.redisHelpers;

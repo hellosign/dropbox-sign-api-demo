@@ -13,10 +13,16 @@ function getCsrfToken() {
   return null;
 }
 
-// Enhanced fetch wrapper with CSRF token
+// Enhanced fetch wrapper with CSRF token and API key (from browser sessionStorage)
 async function fetchWithCsrf(url, options = {}) {
   const token = getCsrfToken();
   const headers = options.headers || {};
+
+  // Add API key from browser storage (never stored server-side)
+  const apiKey = sessionStorage.getItem('dbxSignApiKey');
+  if (apiKey) {
+    headers['x-api-key'] = apiKey;
+  }
 
   // Add CSRF token for state-changing requests
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method?.toUpperCase())) {
@@ -34,6 +40,7 @@ async function fetchWithCsrf(url, options = {}) {
 
   // Handle session expiry (401 or opaque redirect to login)
   if (response.status === 401 || response.type === 'opaqueredirect') {
+    sessionStorage.removeItem('dbxSignApiKey');
     window.location.href = '/login';
     throw new Error('Session expired. Redirecting to login.');
   }

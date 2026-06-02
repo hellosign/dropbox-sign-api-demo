@@ -2,8 +2,7 @@
 import { Router } from 'express';
 import express from 'express';
 import * as DropboxSign from '@dropbox/sign';
-import { requireAuth } from '../middleware/auth.js';
-import { apiCall } from '../services/dropbox-sign.js';
+import { requireSession } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -11,7 +10,7 @@ const router = Router();
  * GET /settings - Get settings for current user
  * Returns per-user settings from Redis
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireSession, async (req, res) => {
   // Prevent browser caching of user-specific data
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
@@ -26,7 +25,7 @@ router.get('/', requireAuth, async (req, res) => {
  * PUT /settings - Update settings for current user
  * Saves settings to Redis
  */
-router.put('/', requireAuth, express.json(), async (req, res) => {
+router.put('/', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { settings } = req.body;
   const { setSettings, getSettings } = req.app.locals.redisHelpers;
@@ -53,7 +52,7 @@ router.put('/', requireAuth, express.json(), async (req, res) => {
  * PUT /settings/selected-api-app - Save selected API app
  * Hidden setting, not shown in Settings UI
  */
-router.put('/selected-api-app', requireAuth, express.json(), async (req, res) => {
+router.put('/selected-api-app', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { clientId } = req.body;
   const { setSettings } = req.app.locals.redisHelpers;
@@ -70,7 +69,7 @@ router.put('/selected-api-app', requireAuth, express.json(), async (req, res) =>
  * PUT /settings/selected-theme - Save selected theme
  * Replaces the defaultTheme setting
  */
-router.put('/selected-theme', requireAuth, express.json(), async (req, res) => {
+router.put('/selected-theme', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { themeId } = req.body;
   const { setSettings } = req.app.locals.redisHelpers;
@@ -86,7 +85,7 @@ router.put('/selected-theme', requireAuth, express.json(), async (req, res) => {
 /**
  * PUT /settings/selected-document-mode - Save selected document mode
  */
-router.put('/selected-document-mode', requireAuth, express.json(), async (req, res) => {
+router.put('/selected-document-mode', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { mode } = req.body;
   const { setSettings } = req.app.locals.redisHelpers;
@@ -102,7 +101,7 @@ router.put('/selected-document-mode', requireAuth, express.json(), async (req, r
 /**
  * PUT /settings/selected-template - Save selected template
  */
-router.put('/selected-template', requireAuth, express.json(), async (req, res) => {
+router.put('/selected-template', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { templateId } = req.body;
   const { setSettings } = req.app.locals.redisHelpers;
@@ -119,7 +118,7 @@ router.put('/selected-template', requireAuth, express.json(), async (req, res) =
  * POST /settings/locale - Save user's language preference
  * Updates session and persists to Redis
  */
-router.post('/locale', requireAuth, express.json(), async (req, res) => {
+router.post('/locale', requireSession, express.json(), async (req, res) => {
   const { locale } = req.body;
   const ALLOWED_LOCALES = ['en', 'es', 'ja'];
 

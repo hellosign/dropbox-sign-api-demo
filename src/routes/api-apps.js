@@ -9,7 +9,6 @@ import * as DropboxSign from '@dropbox/sign';
 import { requireAuth } from '../middleware/auth.js';
 import { apiCall } from '../services/dropbox-sign.js';
 import { VERBOSE_LOGGING } from '../config/security.js';
-import { decryptApiKey } from '../utils/crypto.js';
 
 const router = Router();
 
@@ -484,14 +483,9 @@ router.get('/:clientId', requireAuth, async (req, res) => {
 router.get('/:clientId/logo', requireAuth, async (req, res) => {
   const { clientId } = req.params;
   try {
-    const encryptedApiKey = req.session.apiKey;
-    if (!encryptedApiKey) {
-      return res.status(401).send('Not authenticated');
-    }
-
-    const apiKey = decryptApiKey(encryptedApiKey);
+    const apiKey = req.apiKey;
     if (!apiKey) {
-      return res.status(401).send('Failed to decrypt API key');
+      return res.status(401).send('Not authenticated');
     }
 
     // Fetch logo from Dropbox Sign using the content endpoint (on app subdomain)

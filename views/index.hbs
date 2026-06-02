@@ -34,6 +34,11 @@
   <button class="tab-btn" data-tab="tab-settings">{{__ "nav.tabs.settings"}}</button>
 </div>
 
+<div id="demo-warning-banner" style="background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px 20px;margin:0 20px 12px;border-radius:6px;font-size:13px;line-height:1.5;display:flex;align-items:center;gap:8px;">
+  <span style="font-size:16px;">⚠️</span>
+  <span><strong>Demo/Testing Only</strong> — Do not use production API keys or process sensitive data. Your API key is stored only in your browser session and is never saved on the server.</span>
+</div>
+
 {{#unless apiKeyConfigured}}
 <div id="setup-banner" style="background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:14px 20px;margin:0 20px 16px;border-radius:6px;font-size:14px;line-height:1.6;">
   <strong>Setup required:</strong> No API key is configured. The application cannot connect to the Dropbox Sign API.<br>

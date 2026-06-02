@@ -4,7 +4,6 @@ import express from 'express';
 import https from 'https';
 import { requireAuth } from '../middleware/auth.js';
 import { apiCall } from '../services/dropbox-sign.js';
-import { decryptApiKey } from '../utils/crypto.js';
 import { VERBOSE_LOGGING } from '../config/security.js';
 import { buildRequestDetail } from '../utils/logging.js';
 
@@ -76,7 +75,7 @@ router.get('/debug', requireAuth, async (req, res) => {
     try {
       if (VERBOSE_LOGGING) console.log(`[TEAM-DEBUG] Fetching sub-teams for team_id: ${teamInfo.team_id}`);
 
-      const apiKey = decryptApiKey(req.session.apiKey);
+      const apiKey = req.apiKey;
       const auth = Buffer.from(`${apiKey}:`).toString('base64');
 
       const subTeamsData = await new Promise((resolve, reject) => {
@@ -252,7 +251,7 @@ router.get('/:teamId/sub_teams', requireAuth, async (req, res) => {
   if (VERBOSE_LOGGING) console.log(`[TEAM] Fetching sub-teams for team_id: ${teamId}`);
 
   try {
-    const apiKey = decryptApiKey(req.session.apiKey);
+    const apiKey = req.apiKey;
     const auth = Buffer.from(`${apiKey}:`).toString('base64');
 
     // Fetch sub-teams using GET /v3/team/sub_teams/{team_id}
@@ -366,7 +365,7 @@ router.delete('/:teamId', requireAuth, async (req, res) => {
   if (VERBOSE_LOGGING) console.log('[TEAM] Delete request for team_id:', teamId);
 
   try {
-    const apiKey = decryptApiKey(req.session.apiKey);
+    const apiKey = req.apiKey;
     const auth = Buffer.from(`${apiKey}:`).toString('base64');
 
     // First check if team has children

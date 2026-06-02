@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { body, validationResult } from 'express-validator';
 import { authLimiter } from '../middleware/rate-limit.js';
 import { initSessionData } from '../middleware/auth.js';
-import { encryptApiKey, hashApiKey } from '../utils/crypto.js';
+import { hashApiKey } from '../utils/crypto.js';
 import { getAllowedDomains, getAllowedEmails, isEmailAllowed, getAdminEmails, isAdmin } from '../config/constants.js';
 import { VERBOSE_LOGGING } from '../config/security.js';
 import { validateApiKeyFormat } from '../utils/validation.js';
@@ -47,7 +47,7 @@ function buildKeyInfo(apiKey) {
  */
 router.get('/login', (req, res) => {
   // If already authenticated, redirect to home
-  if (req.session.apiKey) {
+  if (req.session.accountInfo) {
     return res.redirect('/');
   }
   const generateCsrfToken = req.app.locals.generateCsrfToken;
@@ -90,7 +90,7 @@ router.post('/login',
       suspicionScore: 100,
       reasons: ['IP address is blocked']
     });
-    return res.redirect('/login?error=' + encodeURIComponent('Access denied'));
+    return res.status(403).json({ error: 'Access denied' });
   }
 
   // Check validation results
@@ -107,7 +107,7 @@ router.post('/login',
       reasons: [firstError]
     });
 
-    return res.redirect('/login?error=' + encodeURIComponent(firstError));
+    return res.status(400).json({ error: firstError });
   }
 
   const { apiKey } = req.body;
@@ -131,7 +131,7 @@ router.post('/login',
       honeypotTriggered: formatCheck.suspicionScore === 100
     });
 
-    return res.redirect('/login?error=' + encodeURIComponent('Invalid API key'));
+    return res.status(400).json({ error: 'Invalid API key' });
   }
 
   // Log if suspicious but allowed (score 50-80)
@@ -152,7 +152,7 @@ router.post('/login',
 
     // Check if account is locked
     if (accountInfo.is_locked) {
-      return res.redirect('/login?error=' + encodeURIComponent('Account is locked'));
+      return res.status(403).json({ error: 'Account is locked' });
     }
 
     // Access Control: Check if email is allowed (dynamic from Redis or .env)
@@ -179,8 +179,7 @@ router.post('/login',
         reasons: ['Valid key but domain/email not whitelisted']
       });
 
-      const errorMsg = 'You do not have permission to access this application. Please contact your administrator.';
-      return res.redirect('/login?error=' + encodeURIComponent(errorMsg));
+      return res.status(403).json({ error: 'You do not have permission to access this application. Please contact your administrator.' });
     }
 
     if (isUserAdmin) {
@@ -231,11 +230,10 @@ router.post('/login',
     req.session.regenerate(async (err) => {
       if (err) {
         console.error('[LOGIN] Failed to regenerate session:', err);
-        return res.redirect('/login?error=' + encodeURIComponent('Login failed'));
+        return res.status(500).json({ error: 'Login failed' });
       }
 
-      // Store ENCRYPTED API key and account info in new session
-      req.session.apiKey = encryptApiKey(apiKey.trim());
+      // Store account info in session (NOT the API key — that stays browser-side only)
       req.session.accountInfo = {
         account_id: accountInfo.account_id,
         email_address: accountInfo.email_address,
@@ -269,16 +267,18 @@ router.post('/login',
         }
       }
 
-      // User authenticated successfully - no need to log on every login
-
-      // Save session before redirecting to ensure cookie is set
+      // Save session then return API key to browser for client-side storage
       req.session.save((err) => {
         if (err) {
           console.error('[AUTH] Session save error:', err);
-          return res.redirect('/login?error=' + encodeURIComponent('Session error'));
+          return res.status(500).json({ error: 'Session error' });
         }
-        // Redirect to home
-        res.redirect('/');
+        // Return API key to browser (stored in sessionStorage, never on server)
+        res.json({
+          success: true,
+          apiKey: apiKey.trim(),
+          email: accountInfo.email_address
+        });
       });
     });
   } catch (err) {
@@ -293,9 +293,7 @@ router.post('/login',
       reasons: ['Dropbox Sign API rejected key']
     });
 
-    // Provide a generic error message that doesn't leak whether the API key was valid or not
-    const errorMsg = 'Invalid API key or you are not authorized to access this application';
-    return res.redirect('/login?error=' + encodeURIComponent(errorMsg));
+    return res.status(401).json({ error: 'Invalid API key or you are not authorized to access this application' });
   }
 });
 
@@ -338,7 +336,7 @@ router.post('/logout', async (req, res) => {
  * Returns JSON with auth status and user info
  */
 router.get('/auth/status', (req, res) => {
-  if (!req.session.apiKey) {
+  if (!req.session.accountInfo) {
     return res.json({ authenticated: false });
   }
 

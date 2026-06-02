@@ -8,10 +8,14 @@
 
 **This software is intended for demonstration and testing purposes only.**
 
+> **Do NOT use production API keys or process sensitive/confidential data with this application.** This portal has not undergone a full security compliance review and is not approved for handling production credentials or real customer data.
+
 This demo portal is designed for use within controlled environments such as:
 - Partner demonstrations and testing
 - Proof-of-concept deployments
 - API feature exploration and integration planning
+
+**Security model:** API keys are stored exclusively in your browser's session storage and are **never persisted on the server**. When you close the browser tab, the key is gone. The server validates your key on login but does not retain it — similar to how the [Dropbox Sign API documentation](https://developers.hellosign.com/) "Try It" pages work.
 
 **⚠️ NOT RECOMMENDED for public internet deployment.** This application is not hardened for public-facing production use and should only be deployed in trusted, internal environments.
 
@@ -480,7 +484,7 @@ CUSTOM_COMPANY_NAME=Your Company Name
 |----------|----------|---------|-------------|
 | `API_KEY` | ❌ No | - | Your Dropbox Sign API key (needed for API calls) |
 | `SESSION_SECRET` | ⚠️ Recommended | Auto-generated | Session encryption secret (min 32 chars recommended) |
-| `ENCRYPTION_KEY` | ❌ No | Auto-generated | API key encryption key (exactly 32 chars) |
+| `ENCRYPTION_KEY` | ❌ No | Auto-generated | Internal encryption key (auto-generated, 32 chars) |
 | `CSRF_SECRET` | ❌ No | Auto-generated | CSRF protection secret |
 | `PORT` | ❌ No | `3001` | Server port |
 | `NODE_ENV` | ❌ No | `development` | Environment mode |
@@ -551,11 +555,13 @@ See [DEMO_SCRIPT.md](./docs/DEMO_SCRIPT.md) for the complete presenter script.
 
 ## 🔐 Security
 
+- **Browser-Only API Key Storage** - API keys are stored in browser `sessionStorage` only, never persisted on the server. Closing the tab erases the key.
 - **Domain Whitelisting** - Restrict access by email domain
 - **Session Isolation** - Multi-tenant data separation
-- **API Key Encryption** - Secure credential storage
 - **CSRF Protection** - Built-in CSRF token validation
 - **Rate Limiting** - Protect against abuse
+
+> **Important:** This application has NOT passed a full security compliance review. Do not use production API keys or process sensitive data. It is designed for demonstration and testing only.
 
 For details, see [Security Documentation](./docs/security/SECURITY.md).
 

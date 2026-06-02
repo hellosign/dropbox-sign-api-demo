@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import express from 'express';
 import i18n from 'i18n';
-import { requireAuth } from '../middleware/auth.js';
+import { requireAuth, requireSession } from '../middleware/auth.js';
 import { TEMPLATE_IDS, CLIENT_ID, ADMIN_EMAILS } from '../config/constants.js';
 import { recordEvent } from '../services/events.js';
 import { generatePdfFromMarkdown } from '../services/pdf-generator.js';
@@ -38,7 +38,7 @@ router.get('/api/csrf-token', (req, res) => {
  * GET /events/stream - Server-Sent Events endpoint
  * Provides real-time updates to authenticated users
  */
-router.get('/events/stream', requireAuth, (req, res) => {
+router.get('/events/stream', requireSession, (req, res) => {
   const accountId = req.session?.accountInfo?.account_id;
 
   if (!accountId) {
@@ -82,7 +82,7 @@ router.get('/events/stream', requireAuth, (req, res) => {
  * GET /webhook-events - Get callback events for current user
  * Returns webhook events from Redis (multi-tenant)
  */
-router.get('/webhook-events', requireAuth, async (req, res) => {
+router.get('/webhook-events', requireSession, async (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
   const accountId = req.session?.accountInfo?.account_id;
@@ -102,7 +102,7 @@ router.get('/webhook-events', requireAuth, async (req, res) => {
  * GET /templates - Get template list from .env
  * Returns only the IDs from .env along with friendly titles
  */
-router.get('/templates', requireAuth, (req, res) => {
+router.get('/templates', requireSession, (req, res) => {
   // templateMap is stored in app.locals
   const templateMap = req.app.locals.templateMap || {};
 
@@ -151,7 +151,7 @@ function replaceFieldPlaceholders(md, fields) {
  * GET / - Home page
  * Renders main application interface
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireSession, async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { getSettings, getThemes, getFormFieldsDefaults, getOnboardingStatus, hasExistingData } = req.app.locals.redisHelpers;
 
@@ -188,7 +188,7 @@ router.get('/', requireAuth, async (req, res) => {
 
   res.render('index', {
     title: 'Sign API Portal',
-    apiKeyConfigured: !!req.session.apiKey,
+    apiKeyConfigured: !!req.session.accountInfo,
     userEmail: req.session.accountInfo?.email_address,
     isAdmin: isAdmin,
     isTeamAdmin: isTeamAdmin,

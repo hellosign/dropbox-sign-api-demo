@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { exec } from 'child_process';
 import util from 'util';
 import i18n from 'i18n';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireSession, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 const execAsync = util.promisify(exec);
@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 /**
  * GET /admin/translations - Display translation editor
  */
-router.get('/', requireAuth, requireAdmin, async (req, res) => {
+router.get('/', requireSession, requireAdmin, async (req, res) => {
   const localesDir = path.join(__dirname, '../../locales');
   const locales = ['en', 'es', 'ja'];
   const translations = {};
@@ -65,7 +65,7 @@ router.get('/', requireAuth, requireAdmin, async (req, res) => {
 /**
  * POST /admin/translations - Save edited translations
  */
-router.post('/', requireAuth, requireAdmin, express.json(), async (req, res) => {
+router.post('/', requireSession, requireAdmin, express.json(), async (req, res) => {
   const { locale, translations } = req.body;
   const userEmail = req.session.accountInfo?.email_address || 'unknown';
 
@@ -167,7 +167,7 @@ router.post('/', requireAuth, requireAdmin, express.json(), async (req, res) => 
 /**
  * POST /admin/translations/reload - Reload translations without restart
  */
-router.post('/reload', requireAuth, requireAdmin, (req, res) => {
+router.post('/reload', requireSession, requireAdmin, (req, res) => {
   try {
     const localesDir = path.join(__dirname, '../../locales');
     i18n.configure({
@@ -190,7 +190,7 @@ router.post('/reload', requireAuth, requireAdmin, (req, res) => {
 /**
  * GET /admin/translations/git-status - Get git status and recent commits
  */
-router.get('/git-status', requireAuth, requireAdmin, async (req, res) => {
+router.get('/git-status', requireSession, requireAdmin, async (req, res) => {
   try {
     const { stdout: log } = await execAsync('git log -5 --format="%h|%an|%ar|%s" -- locales/', {
       cwd: path.join(__dirname, '../..')
