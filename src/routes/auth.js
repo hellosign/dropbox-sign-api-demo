@@ -165,6 +165,8 @@ router.post('/login',
     const adminEmails = await getAdminEmails(redisClient);
     const isUserAdmin = isAdmin(emailLower, adminEmails);
 
+    console.log(`[ACCESS CONTROL] Email: ${emailLower}, Admin list: ${JSON.stringify(adminEmails)}, isAdmin: ${isUserAdmin}, Domains: ${JSON.stringify(allowedDomains)}`);
+
     if (!isUserAdmin && !isEmailAllowed(emailLower, allowedDomains, allowedEmails)) {
       if (VERBOSE_LOGGING) console.warn(`[ACCESS CONTROL] Access denied for ${accountInfo.email_address} (domain: ${emailDomain})`);
 
