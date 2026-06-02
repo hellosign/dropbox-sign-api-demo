@@ -27,8 +27,17 @@ export const LOGO_CONFIG = {
 };
 
 // Encryption configuration for API keys (AES-256-CBC)
-export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex').slice(0, 32);
+// If no key provided, generate one and store on process.env for consistency within this process
+if (!process.env.ENCRYPTION_KEY) {
+  process.env.ENCRYPTION_KEY = crypto.randomBytes(32).toString('hex').slice(0, 32);
+}
 export const ENCRYPTION_IV_LENGTH = 16;
+
+export function getEncryptionKey() {
+  return process.env.ENCRYPTION_KEY;
+}
+// Legacy export for backward compatibility
+export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
 // CSRF Secret
 export const CSRF_SECRET = process.env.CSRF_SECRET || crypto.randomBytes(32).toString('hex');

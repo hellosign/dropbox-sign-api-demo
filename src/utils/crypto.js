@@ -1,6 +1,10 @@
 // src/utils/crypto.js
 import crypto from 'crypto';
-import { ENCRYPTION_KEY, ENCRYPTION_IV_LENGTH, VERBOSE_LOGGING } from '../config/security.js';
+import { ENCRYPTION_IV_LENGTH, VERBOSE_LOGGING } from '../config/security.js';
+
+function getKey() {
+  return process.env.ENCRYPTION_KEY;
+}
 
 /**
  * Encrypt sensitive data (API keys) before storing in Redis
@@ -8,7 +12,7 @@ import { ENCRYPTION_KEY, ENCRYPTION_IV_LENGTH, VERBOSE_LOGGING } from '../config
 export function encryptApiKey(apiKey) {
   if (!apiKey) return null;
   const iv = crypto.randomBytes(ENCRYPTION_IV_LENGTH);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(getKey()), iv);
   let encrypted = cipher.update(apiKey, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return iv.toString('hex') + ':' + encrypted;
@@ -27,7 +31,7 @@ export function decryptApiKey(data) {
       const parts = data.split(':');
       const iv = Buffer.from(parts[0], 'hex');
       const encrypted = parts[1];
-      const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+      const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(getKey()), iv);
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
       return decrypted;

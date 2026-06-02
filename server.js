@@ -261,6 +261,14 @@ if (redisUrl) {
     await redisClient.connect();
     console.log(`✓ Redis connected for session persistence (database ${redisDb})`);
 
+    // Persist ENCRYPTION_KEY in Redis so it survives container restarts
+    const storedKey = await redisClient.get('system:encryption_key');
+    if (storedKey) {
+      process.env.ENCRYPTION_KEY = storedKey;
+    } else {
+      await redisClient.set('system:encryption_key', process.env.ENCRYPTION_KEY);
+    }
+
     // Initialize API abstraction service with Redis dependencies
     initDropboxSignService({
       redisClient,
