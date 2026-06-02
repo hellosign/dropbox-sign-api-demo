@@ -127,6 +127,27 @@ async function main() {
 
   console.log('');
 
+  // Step 4: Redis (optional)
+  console.log('💾 Step 4: Redis configuration (optional)...');
+  console.log('');
+  console.log('   Redis enables session persistence across restarts,');
+  console.log('   API log history, and theme-to-template mappings.');
+  console.log('   Without Redis, the app uses in-memory storage (data lost on restart).');
+  console.log('');
+
+  const redisAnswer = await ask('Do you have Redis installed? (yes/no): ');
+
+  if (redisAnswer.toLowerCase().startsWith('y')) {
+    const redisUrl = await ask('Redis URL (press Enter for redis://localhost:6379): ');
+    const finalRedisUrl = redisUrl.trim() || 'redis://localhost:6379';
+    envContent = envContent.replace(/^REDIS_URL=.*$/m, `REDIS_URL=${finalRedisUrl}`);
+    console.log(`  ✓ Redis configured: ${finalRedisUrl}`);
+  } else {
+    console.log('  ✓ Using in-memory storage (you can add Redis later in .env)');
+  }
+
+  console.log('');
+
   // Write .env file
   fs.writeFileSync(envPath, envContent, 'utf-8');
 

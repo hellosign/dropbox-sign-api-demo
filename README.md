@@ -216,6 +216,7 @@ npm start
 1. ✅ **Automatic .env creation** - Creates configuration file from template
 2. ✅ **Security key generation** - Generates SESSION_SECRET, ENCRYPTION_KEY, and CSRF_SECRET
 3. ✅ **Admin email configuration** - Sets up your admin access
+4. ✅ **Redis configuration** - Optional, for session persistence across restarts
 
 The setup takes less than 30 seconds and ensures secure defaults.
 
@@ -249,6 +250,15 @@ Run automatic setup? (yes/no): yes
 
 Admin email address: demo@example.com
   ✓ Admin email set: demo@example.com
+
+💾 Step 4: Redis configuration (optional)...
+
+   Redis enables session persistence across restarts,
+   API log history, and theme-to-template mappings.
+   Without Redis, the app uses in-memory storage (data lost on restart).
+
+Do you have Redis installed? (yes/no): no
+  ✓ Using in-memory storage (you can add Redis later in .env)
 
 ╔════════════════════════════════════════════════════════╗
 ║            ✅ Setup Complete!                          ║
