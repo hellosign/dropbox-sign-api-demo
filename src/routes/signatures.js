@@ -237,7 +237,7 @@ router.get('/', requireAuth, async (req, res) => {
       if (isRateLimit) {
         return res.status(429).json({ error: "Rate limited by Dropbox Sign API", rateLimited: true });
       }
-      console.error("Error in /signatures:", err?.message || err, err?.body || "");
+      if (VERBOSE_LOGGING) console.error("Error in /signatures:", err?.message || err, err?.body || "");
       return res.status(500).json({ error: "Failed to fetch signature list" });
     }
   }

@@ -1,6 +1,6 @@
 // src/utils/crypto.js
 import crypto from 'crypto';
-import { ENCRYPTION_KEY, ENCRYPTION_IV_LENGTH } from '../config/security.js';
+import { ENCRYPTION_KEY, ENCRYPTION_IV_LENGTH, VERBOSE_LOGGING } from '../config/security.js';
 
 /**
  * Encrypt sensitive data (API keys) before storing in Redis
@@ -32,16 +32,15 @@ export function decryptApiKey(data) {
       decrypted += decipher.final('utf8');
       return decrypted;
     } catch (err) {
-      console.error('[CRYPTO] Decryption failed:', err.message);
-      // If decryption fails, it might be a plain-text key, try returning as-is
-      console.warn('[CRYPTO] Treating as plain-text API key (migration)');
+      if (VERBOSE_LOGGING) {
+        console.error('[CRYPTO] Decryption failed:', err.message);
+        console.warn('[CRYPTO] Treating as plain-text API key (migration)');
+      }
       return data;
     }
   }
 
-  // Plain-text API key (legacy sessions from before encryption)
-  // This provides backward compatibility during migration
-  console.warn('[CRYPTO] Plain-text API key detected (legacy session)');
+  if (VERBOSE_LOGGING) console.warn('[CRYPTO] Plain-text API key detected (legacy session)');
   return data;
 }
 

@@ -190,7 +190,7 @@ router.get('/', requireAuth, async (req, res) => {
     const refreshed = req.session.templatesCache.data.map(t => ({ ...t, labels: userTemplateLabels[t.id] || [] }));
     res.json(refreshed);
     // Background refresh (fire-and-forget)
-    refreshTemplatesCache(limit, req).catch(err => console.warn("[/api-templates] Background refresh failed:", err?.message || err));
+    refreshTemplatesCache(limit, req).catch(err => { if (VERBOSE_LOGGING) console.warn("[/api-templates] Background refresh failed:", err?.message || err); });
     return;
   }
 

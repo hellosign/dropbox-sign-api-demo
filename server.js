@@ -1066,7 +1066,7 @@ async function setTheme(accountId, themeId, themeData) {
   userThemes[themeId] = themeData;
   const key = `user:${accountId}:themes`;
   await redisClient.set(key, JSON.stringify(userThemes));
-  console.log(`[REDIS] Updated theme ${themeId} for user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated theme ${themeId} for user ${accountId}`);
 }
 
 async function deleteTheme(accountId, themeId) {
@@ -1080,7 +1080,7 @@ async function deleteTheme(accountId, themeId) {
   delete userThemes[themeId];
   const key = `user:${accountId}:themes`;
   await redisClient.set(key, JSON.stringify(userThemes));
-  console.log(`[REDIS] Deleted theme ${themeId} for user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Deleted theme ${themeId} for user ${accountId}`);
 }
 
 // Admin bulk theme operations
@@ -1175,7 +1175,7 @@ async function setTemplateLabels(accountId, labels) {
 
   const key = `user:${accountId}:template_labels`;
   await redisClient.set(key, JSON.stringify(labels));
-  console.log(`[REDIS] Updated template labels for user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated template labels for user ${accountId}`);
 }
 
 async function setTemplateLabel(accountId, templateId, themeIds) {
@@ -1189,7 +1189,7 @@ async function setTemplateLabel(accountId, templateId, themeIds) {
   userLabels[templateId] = themeIds;
   const key = `user:${accountId}:template_labels`;
   await redisClient.set(key, JSON.stringify(userLabels));
-  console.log(`[REDIS] Updated label for template ${templateId}, user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated label for template ${templateId}, user ${accountId}`);
 }
 
 async function getTemplateMergeFields(accountId) {
@@ -1254,7 +1254,7 @@ async function setSettings(accountId, newSettings) {
   const currentSettings = await getSettings(accountId);
   const updatedSettings = { ...currentSettings, ...newSettings };
   await redisClient.set(key, JSON.stringify(updatedSettings));
-  console.log(`[REDIS] Updated settings for user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated settings for user ${accountId}`);
 }
 
 // 4. Form Fields Defaults
@@ -1269,7 +1269,7 @@ async function getFormFieldsDefaults(accountId) {
 
   if (cached) {
     const parsed = JSON.parse(cached);
-    console.log(`[FORM_FIELDS] Loaded for ${accountId}:`, JSON.stringify(parsed, null, 2));
+    if (VERBOSE_LOGGING) console.log(`[FORM_FIELDS] Loaded for ${accountId}:`, JSON.stringify(parsed, null, 2));
     return parsed;
   }
 
@@ -1290,9 +1290,9 @@ async function setFormFieldsDefaults(accountId, fields) {
   }
 
   const key = `user:${accountId}:form_fields`;
-  console.log(`[FORM_FIELDS] Saving for ${accountId}:`, JSON.stringify(fields, null, 2));
+  if (VERBOSE_LOGGING) console.log(`[FORM_FIELDS] Saving for ${accountId}:`, JSON.stringify(fields, null, 2));
   await redisClient.set(key, JSON.stringify(fields));
-  console.log(`[REDIS] Updated form fields for user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated form fields for user ${accountId}`);
 }
 
 async function deleteFormFieldsDefaults(accountId) {
@@ -1304,7 +1304,7 @@ async function deleteFormFieldsDefaults(accountId) {
 
   const key = `user:${accountId}:form_fields`;
   await redisClient.del(key);
-  console.log(`[REDIS] Deleted form fields for user ${accountId} (will reload from global defaults)`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Deleted form fields for user ${accountId} (will reload from global defaults)`);
 }
 
 // 5. Document Templates
@@ -1336,7 +1336,7 @@ async function setDocumentTemplates(accountId, templates) {
 
   const key = `user:${accountId}:document_templates`;
   await redisClient.set(key, JSON.stringify(templates));
-  console.log(`[REDIS] Updated document templates for user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated document templates for user ${accountId}`);
 }
 
 // 6. Signature Warnings
@@ -1354,7 +1354,7 @@ async function getSignatureWarnings(accountId) {
   }
 
   // First-time: start with empty object (warnings are generated, not seeded)
-  console.log(`[REDIS] Initializing signature warnings for user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Initializing signature warnings for user ${accountId}`);
   const emptyWarnings = {};
   await redisClient.set(key, JSON.stringify(emptyWarnings));
   return emptyWarnings;
@@ -1378,7 +1378,7 @@ async function addSignatureWarning(accountId, signatureRequestId, warnings) {
 
   const key = `user:${accountId}:sig_warnings`;
   await redisClient.set(key, JSON.stringify(userWarnings));
-  console.log(`[REDIS] Added signature warning for ${signatureRequestId}, user ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] Added signature warning for ${signatureRequestId}, user ${accountId}`);
 }
 
 // 7. API Logs
@@ -1456,7 +1456,7 @@ function addApiLog(entry, accountId = 'global', req = null) {
 // 8. Test Mode Settings (per-user, per-app)
 async function getAppTestModeSettings(accountId) {
   if (!redisClient) {
-    console.log('[REDIS] getAppTestModeSettings: Redis client not available');
+    if (VERBOSE_LOGGING) console.log('[REDIS] getAppTestModeSettings: Redis client not available');
     return {};
   }
 
@@ -1465,23 +1465,23 @@ async function getAppTestModeSettings(accountId) {
 
   if (cached) {
     const parsed = JSON.parse(cached);
-    console.log(`[REDIS] getAppTestModeSettings for ${accountId}:`, parsed);
+    if (VERBOSE_LOGGING) console.log(`[REDIS] getAppTestModeSettings for ${accountId}:`, parsed);
     return parsed;
   }
 
-  console.log(`[REDIS] getAppTestModeSettings: No data found for ${accountId}`);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] getAppTestModeSettings: No data found for ${accountId}`);
   return {};
 }
 
 async function setAppTestModeSettings(accountId, testModeSettings) {
   if (!redisClient) {
-    console.log('[REDIS] setAppTestModeSettings: Redis client not available');
+    if (VERBOSE_LOGGING) console.log('[REDIS] setAppTestModeSettings: Redis client not available');
     return;
   }
 
   const key = `user:${accountId}:app_test_mode`;
   await redisClient.set(key, JSON.stringify(testModeSettings));
-  console.log(`[REDIS] setAppTestModeSettings for ${accountId}:`, testModeSettings);
+  if (VERBOSE_LOGGING) console.log(`[REDIS] setAppTestModeSettings for ${accountId}:`, testModeSettings);
 }
 
 //

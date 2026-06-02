@@ -8,6 +8,7 @@ import multer from 'multer';
 import * as DropboxSign from '@dropbox/sign';
 import { requireAuth } from '../middleware/auth.js';
 import { apiCall } from '../services/dropbox-sign.js';
+import { VERBOSE_LOGGING } from '../config/security.js';
 import { decryptApiKey } from '../utils/crypto.js';
 
 const router = Router();
@@ -35,12 +36,12 @@ router.get('/', requireAuth, async (req, res) => {
   const persistedAppTestMode = await getAppTestModeSettings(accountId);
   if (persistedAppTestMode && Object.keys(persistedAppTestMode).length > 0) {
     req.session.appTestMode = persistedAppTestMode;
-    console.log('[API-APPS] Loaded persisted test mode for account', accountId, ':', req.session.appTestMode);
+    if (VERBOSE_LOGGING) console.log('[API-APPS] Loaded persisted test mode for account', accountId, ':', req.session.appTestMode);
   } else if (!req.session.appTestMode) {
     req.session.appTestMode = {};
-    console.log('[API-APPS] No persisted test mode for account', accountId);
+    if (VERBOSE_LOGGING) console.log('[API-APPS] No persisted test mode for account', accountId);
   } else {
-    console.log('[API-APPS] Using session test mode fallback for account', accountId, ':', req.session.appTestMode);
+    if (VERBOSE_LOGGING) console.log('[API-APPS] Using session test mode fallback for account', accountId, ':', req.session.appTestMode);
   }
 
   // Session-based cache (per user)
@@ -56,7 +57,7 @@ router.get('/', requireAuth, async (req, res) => {
     const sessionAppTestMode = req.session.appTestMode || {};
     const webhookSettings = accountId ? await getAppWebhookSettings(accountId) : {};
 
-    console.log('[APPLY-SETTINGS] Applying test mode settings:', sessionAppTestMode);
+    if (VERBOSE_LOGGING) console.log('[APPLY-SETTINGS] Applying test mode settings:', sessionAppTestMode);
 
     return apps.map(a => {
       // Always respect saved webhook setting from Redis (default: true if not set)
@@ -69,7 +70,7 @@ router.get('/', requireAuth, async (req, res) => {
       // Default to true (test mode) to match server-side behavior in signing.js:getTestMode()
       // This prevents SMS auth errors when session is empty
       const testModeValue = sessionAppTestMode[a.clientId] !== undefined ? sessionAppTestMode[a.clientId] : true;
-      console.log(`[APPLY-SETTINGS] App ${a.clientId} (${a.name}): testMode = ${testModeValue}`);
+      if (VERBOSE_LOGGING) console.log(`[APPLY-SETTINGS] App ${a.clientId} (${a.name}): testMode = ${testModeValue}`);
 
       return {
         ...a,
@@ -117,7 +118,7 @@ router.get('/', requireAuth, async (req, res) => {
           };
         });
         req.session.appsCache = { data: apps, timestamp: Date.now() };
-      } catch (err) { console.warn("[/api-apps] Background refresh failed:", err?.message || err); }
+      } catch (err) { if (VERBOSE_LOGGING) console.warn("[/api-apps] Background refresh failed:", err?.message || err); }
     })();
     return;
   }
