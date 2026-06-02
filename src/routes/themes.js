@@ -1,8 +1,7 @@
 // src/routes/themes.js
 import { Router } from 'express';
 import express from 'express';
-import { requireAuth } from '../middleware/auth.js';
-import { apiCall } from '../services/dropbox-sign.js';
+import { requireSession } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -10,7 +9,7 @@ const router = Router();
  * GET /themes - Get themes for current user
  * Returns per-user themes from Redis
  */
-router.get('/', requireAuth, async (req, res) => {
+router.get('/', requireSession, async (req, res) => {
   // Prevent browser caching of user-specific data
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
@@ -25,7 +24,7 @@ router.get('/', requireAuth, async (req, res) => {
  * PUT /themes/:id - Update or create a theme
  * Allows PUT to create new themes (for "Save As" functionality)
  */
-router.put('/:id', requireAuth, express.json(), async (req, res) => {
+router.put('/:id', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const themeId = req.params.id;
   const updatedTheme = req.body;
@@ -52,7 +51,7 @@ router.put('/:id', requireAuth, express.json(), async (req, res) => {
  * DELETE /themes/:id - Delete a theme
  * Optionally deletes associated templates from Dropbox Sign
  */
-router.delete('/:id', requireAuth, express.json(), async (req, res) => {
+router.delete('/:id', requireSession, express.json(), async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const themeId = req.params.id;
   const { deleteTemplates } = req.body || {};

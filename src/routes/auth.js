@@ -46,10 +46,6 @@ function buildKeyInfo(apiKey) {
  * Displays login form or redirects if already authenticated
  */
 router.get('/login', (req, res) => {
-  // If already authenticated, redirect to home
-  if (req.session.accountInfo) {
-    return res.redirect('/');
-  }
   const generateCsrfToken = req.app.locals.generateCsrfToken;
   const csrfToken = generateCsrfToken(req, res);
   res.render('login', {
