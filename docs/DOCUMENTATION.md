@@ -3,7 +3,7 @@
 ## Structure
 
 ```text
-dbx-sign-api-demo-public/
+dropbox-sign-api-demo/
 ├── README.md
 ├── .env.example
 ├── docs/
@@ -14,7 +14,6 @@ dbx-sign-api-demo-public/
 │   ├── architecture/
 │   ├── authentication/
 │   ├── deployment/
-│   ├── development/
 │   ├── features/
 │   └── security/
 ```
@@ -31,14 +30,12 @@ Quick local setup:
 OAuth setup:
 
 1. Read [authentication/OAUTH_SETUP.md](./authentication/OAUTH_SETUP.md).
-2. Review [authentication/OAUTH_DEPLOYMENT.md](./authentication/OAUTH_DEPLOYMENT.md).
-3. Configure access rules with [authentication/ACCESS_CONTROL.md](./authentication/ACCESS_CONTROL.md).
+2. Configure access rules with [authentication/ACCESS_CONTROL.md](./authentication/ACCESS_CONTROL.md).
 
 Production deployment:
 
 1. Review [deployment/ENV_CONFIGURATION.md](./deployment/ENV_CONFIGURATION.md).
-2. Follow [deployment/DEPLOYMENT.md](./deployment/DEPLOYMENT.md).
-3. Review [security/SECURITY.md](./security/SECURITY.md).
+2. Review [security/SECURITY.md](./security/SECURITY.md).
 
 ## Maintenance
 

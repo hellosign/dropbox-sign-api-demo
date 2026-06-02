@@ -453,7 +453,6 @@ CUSTOM_COMPANY_NAME=Your Company Name
 ## 📚 Documentation
 
 ### Getting Started
-- **[Deployment Guide](./docs/deployment/DEPLOYMENT.md)** - Deploy to production
 - **[Demo Script](./docs/DEMO_SCRIPT.md)** - Presenter guide for live demos
 - **[Complete Documentation](./docs/README.md)** - Full documentation index
 
@@ -461,7 +460,6 @@ CUSTOM_COMPANY_NAME=Your Company Name
 - **[Architecture & Design](./docs/architecture/)** - System design, data isolation, and database structure
 - **[Authentication & Security](./docs/authentication/)** - Access control and security configuration
 - **[Deployment & Environment](./docs/deployment/)** - Environment configuration, deployment guides
-- **[Development Notes](./docs/development/)** - Development notes and migration references
 - **[Features & Guides](./docs/features/)** - Template sharing, troubleshooting, feature docs
 - **[Security & Compliance](./docs/security/)** - Security reviews, compliance documentation
 

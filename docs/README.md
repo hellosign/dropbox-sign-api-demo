@@ -5,7 +5,6 @@ This directory contains the public technical documentation for the demo portal.
 ## Getting Started
 
 - [Main README](../README.md) - Project overview and quick start
-- [OAuth Quick Start](./README_OAUTH.md) - OAuth-oriented setup guide
 - [Demo Script](./DEMO_SCRIPT.md) - Presenter guide for live demos
 
 ## Documentation by Topic
@@ -21,7 +20,6 @@ This directory contains the public technical documentation for the demo portal.
 
 - Configure OAuth: [authentication/OAUTH_SETUP.md](./authentication/OAUTH_SETUP.md)
 - Configure access control: [authentication/ACCESS_CONTROL.md](./authentication/ACCESS_CONTROL.md)
-- Deploy the app: [deployment/DEPLOYMENT.md](./deployment/DEPLOYMENT.md)
 - Review environment variables: [deployment/ENV_CONFIGURATION.md](./deployment/ENV_CONFIGURATION.md)
 - Understand session isolation: [architecture/OAUTH_DATA_ISOLATION.md](./architecture/OAUTH_DATA_ISOLATION.md)
 - Troubleshoot template creation: [features/TEMPLATE_CREATION_FIX.md](./features/TEMPLATE_CREATION_FIX.md)

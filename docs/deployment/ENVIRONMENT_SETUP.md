@@ -374,5 +374,4 @@ dbx-sign-api-demo/
 For issues:
 - Check startup validation messages (most common issues are caught here)
 - Verify OAuth app callback URLs match environment configuration
-- Review [README_OAUTH.md](../../README_OAUTH.md) for general setup
 - Check server logs for detailed error messages
