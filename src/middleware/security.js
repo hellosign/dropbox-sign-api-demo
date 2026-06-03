@@ -15,7 +15,7 @@ export const helmetMiddleware = helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdn.hellosign.com", "https://cdnjs.cloudflare.com"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
       connectSrc: ["'self'", "https://api.hellosign.com", "https://api.dropboxsign.com"],
       frameSrc: ["'self'", "https://app.hellosign.com", "https://app.dropboxsign.com", "https://*.hellosign.com", "https://*.dropboxsign.com"],
       childSrc: ["'self'", "https://app.hellosign.com", "https://app.dropboxsign.com"],
