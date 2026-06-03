@@ -4089,16 +4089,42 @@ embedBtn.addEventListener('click', async () => {
           <h3>Custom Logo <span class="tooltip-icon" data-tooltip="customLogoFile">?</span></h3>
           <div class="app-logo-section">
             <div class="app-logo-preview" style="margin-bottom:12px;">
-              <img src="${logoUrl}"
+              <img id="app-logo-${appData.clientId}"
                    alt="App logo"
-                   style="max-width:200px;max-height:200px;border:1px solid #e2e8f0;border-radius:8px;padding:8px;background:white;"
-                   onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
-              <div style="display:none;color:#94a3b8;font-size:13px;font-style:italic;padding:12px;background:#f8fafc;border-radius:6px;">No custom logo uploaded yet</div>
+                   style="max-width:200px;max-height:200px;border:1px solid #e2e8f0;border-radius:8px;padding:8px;background:white;" />
+              <div id="app-logo-placeholder-${appData.clientId}" style="display:none;color:#94a3b8;font-size:13px;font-style:italic;padding:12px;background:#f8fafc;border-radius:6px;">No custom logo uploaded yet</div>
             </div>
             <input type="file" data-field="custom_logo_file" accept="image/png,image/jpeg,image/gif,image/svg+xml" />
             <span style="font-size:12px;color:#64748b;">PNG, JPEG, GIF, or SVG. Max 200x200px recommended.</span>
           </div>
         `;
+
+        // Load logo with authentication header
+        (async () => {
+          try {
+            const response = await fetchWithCsrf(logoUrl, { method: 'GET' });
+            if (response.ok) {
+              const blob = await response.blob();
+              const imgUrl = URL.createObjectURL(blob);
+              const imgElement = document.getElementById(`app-logo-${appData.clientId}`);
+              if (imgElement) {
+                imgElement.src = imgUrl;
+              }
+            } else {
+              // Logo not found or error - show placeholder
+              const imgElement = document.getElementById(`app-logo-${appData.clientId}`);
+              const placeholder = document.getElementById(`app-logo-placeholder-${appData.clientId}`);
+              if (imgElement) imgElement.style.display = 'none';
+              if (placeholder) placeholder.style.display = 'block';
+            }
+          } catch (err) {
+            console.warn('Failed to load app logo:', err);
+            const imgElement = document.getElementById(`app-logo-${appData.clientId}`);
+            const placeholder = document.getElementById(`app-logo-placeholder-${appData.clientId}`);
+            if (imgElement) imgElement.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'block';
+          }
+        })();
 
         // --- White Labeling Section ---
         const wlOptions = appData.whiteLabelingOptions || {};
@@ -5509,10 +5535,15 @@ async function createDemoApps() {
           `<strong style="color:#dc2626;font-size:15px;">⚠️ ${errorTitle}</strong><br><br>` +
           `<p style="margin:12px 0;color:#475569;line-height:1.6;">${explanation}</p>` +
           `<p style="margin:12px 0;color:#64748b;font-size:13px;line-height:1.5;">${suggestion}</p>` +
-          `<button onclick="skipOnboarding()" style="margin-top:16px;padding:10px 20px;background:#6366f1;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px;">` +
+          `<button id="skip-onboarding-btn-1" style="margin-top:16px;padding:10px 20px;background:#6366f1;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px;">` +
           `Continue Without Demo Apps</button>` +
           `</div>`;
         errorEl.style.display = 'block';
+        // Attach event listener after DOM is updated
+        setTimeout(() => {
+          const btn = document.getElementById('skip-onboarding-btn-1');
+          if (btn) btn.addEventListener('click', skipOnboarding);
+        }, 0);
       } else if (result.isConfigError) {
         const errorTitle = result.error || 'Configuration Required';
         const explanation = result.message || 'Required environment variables are not configured.';
@@ -5531,10 +5562,15 @@ async function createDemoApps() {
           `<p style="margin:12px 0;color:#475569;line-height:1.6;">${explanation}</p>` +
           detailsHtml +
           `<p style="margin:12px 0;color:#64748b;font-size:13px;line-height:1.5;">${suggestion}</p>` +
-          `<button onclick="skipOnboarding()" style="margin-top:16px;padding:10px 20px;background:#6366f1;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px;">` +
+          `<button id="skip-onboarding-btn-2" style="margin-top:16px;padding:10px 20px;background:#6366f1;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:500;font-size:14px;">` +
           `Skip — Continue Without Demo Apps</button>` +
           `</div>`;
         errorEl.style.display = 'block';
+        // Attach event listener after DOM is updated
+        setTimeout(() => {
+          const btn = document.getElementById('skip-onboarding-btn-2');
+          if (btn) btn.addEventListener('click', skipOnboarding);
+        }, 0);
       } else {
         // Other errors - show details
         let errorMessage = result.error || 'Failed to create apps. Please try again.';

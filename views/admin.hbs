@@ -585,7 +585,6 @@
           class="search-input"
           id="search-input"
           placeholder="Search by email or account ID..."
-          oninput="filterUsers()"
         >
       </div>
 
@@ -975,6 +974,12 @@
         closeModal();
       }
     });
+
+    // Attach search input listener
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+      searchInput.addEventListener('input', filterUsers);
+    }
 
     // Event delegation for dynamically created buttons (delegate to document)
     document.addEventListener('click', (e) => {
