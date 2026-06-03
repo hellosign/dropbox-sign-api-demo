@@ -171,12 +171,13 @@ async function setApiKeyHash(accountId, apiKeyHash) {
 /**
  * Get onboarding status for an account
  * @param {string} accountId
- * @returns {Promise<string|null>} "pending" | "dismissed" | "completed" or null
+ * @returns {Promise<string>} "pending" | "dismissed" | "completed"
  */
 async function getOnboardingStatus(accountId) {
-  if (!redisClient || !accountId) return null;
+  if (!redisClient || !accountId) return 'pending'; // Default to pending for first-time users without Redis
   const key = `user:${accountId}:onboarding_status`;
-  return await redisClient.get(key);
+  const status = await redisClient.get(key);
+  return status || 'pending'; // Default to pending if not set
 }
 
 /**
