@@ -382,7 +382,7 @@ if (!redisClient) {
     setApiKeyHash: () => {},
     invalidateAllSessionsForAccount: () => {},
     setOnboardingStatus: () => {},
-    getOnboardingStatus: () => null,
+    getOnboardingStatus: () => 'pending', // Default to pending for in-memory mode (no Redis)
     hasExistingData: () => false,
     getSettings: () => ({}),
     setSettings: () => {},
