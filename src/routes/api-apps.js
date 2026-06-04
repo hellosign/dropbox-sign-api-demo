@@ -221,6 +221,15 @@ router.put('/visibility', requireAuth, express.json(), (req, res) => {
 });
 
 /**
+ * GET /api-apps/test-mode - Get test mode settings
+ * Returns current test mode state for all API apps
+ */
+router.get('/test-mode', requireAuth, async (req, res) => {
+  const testMode = req.session?.appTestMode || {};
+  res.json({ testMode });
+});
+
+/**
  * PUT /api-apps/test-mode - Save test mode settings
  * Stores in session and persists to Redis
  */

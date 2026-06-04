@@ -17,7 +17,7 @@ router.get('/', requireSession, async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { getSettings } = req.app.locals.redisHelpers;
 
-  const userSettings = await getSettings(accountId);
+  const userSettings = await getSettings(accountId, req.session);
   res.json(userSettings);
 });
 
@@ -38,8 +38,8 @@ router.put('/', requireSession, express.json(), async (req, res) => {
   }
 
   try {
-    await setSettings(accountId, settings);
-    const updatedSettings = await getSettings(accountId);
+    await setSettings(accountId, settings, req.session);
+    const updatedSettings = await getSettings(accountId, req.session);
     console.log('[PUT /settings] Settings updated successfully:', { accountId, updatedSettings });
     res.json({ success: true, settings: updatedSettings });
   } catch (error) {
@@ -61,7 +61,7 @@ router.put('/selected-api-app', requireSession, express.json(), async (req, res)
     return res.status(400).json({ error: "Invalid clientId" });
   }
 
-  await setSettings(accountId, { selectedApiApp: clientId });
+  await setSettings(accountId, { selectedApiApp: clientId }, req.session);
   res.json({ success: true });
 });
 
@@ -78,7 +78,7 @@ router.put('/selected-theme', requireSession, express.json(), async (req, res) =
     return res.status(400).json({ error: "Invalid themeId" });
   }
 
-  await setSettings(accountId, { selectedTheme: themeId });
+  await setSettings(accountId, { selectedTheme: themeId }, req.session);
   res.json({ success: true });
 });
 
@@ -94,7 +94,7 @@ router.put('/selected-document-mode', requireSession, express.json(), async (req
     return res.status(400).json({ error: "Invalid mode" });
   }
 
-  await setSettings(accountId, { selectedDocumentMode: mode });
+  await setSettings(accountId, { selectedDocumentMode: mode }, req.session);
   res.json({ success: true });
 });
 
@@ -110,7 +110,7 @@ router.put('/selected-template', requireSession, express.json(), async (req, res
     return res.status(400).json({ error: "Invalid templateId" });
   }
 
-  await setSettings(accountId, { selectedTemplate: templateId });
+  await setSettings(accountId, { selectedTemplate: templateId }, req.session);
   res.json({ success: true });
 });
 
@@ -138,7 +138,7 @@ router.post('/locale', requireSession, express.json(), async (req, res) => {
   // Persist to Redis for long-term storage
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { setSettings } = req.app.locals.redisHelpers;
-  await setSettings(accountId, { locale });
+  await setSettings(accountId, { locale }, req.session);
   console.log('[Locale Switch] Saved to Redis for account:', accountId);
 
   res.json({ success: true, locale });

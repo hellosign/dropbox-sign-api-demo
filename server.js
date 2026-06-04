@@ -171,24 +171,37 @@ async function setApiKeyHash(accountId, apiKeyHash) {
 /**
  * Get onboarding status for an account
  * @param {string} accountId
+ * @param {object} session - Express session object (optional, used as fallback when Redis unavailable)
  * @returns {Promise<string>} "pending" | "dismissed" | "completed"
  */
-async function getOnboardingStatus(accountId) {
-  if (!redisClient || !accountId) return 'pending'; // Default to pending for first-time users without Redis
-  const key = `user:${accountId}:onboarding_status`;
-  const status = await redisClient.get(key);
-  return status || 'pending'; // Default to pending if not set
+async function getOnboardingStatus(accountId, session = null) {
+  if (redisClient && accountId) {
+    const key = `user:${accountId}:onboarding_status`;
+    const status = await redisClient.get(key);
+    return status || 'pending';
+  }
+  // Fallback to session storage when Redis is unavailable
+  if (session && session.onboardingStatus) {
+    return session.onboardingStatus;
+  }
+  return 'pending'; // Default to pending for first-time users
 }
 
 /**
  * Set onboarding status for an account
  * @param {string} accountId
  * @param {string} status - "pending" | "dismissed" | "completed"
+ * @param {object} session - Express session object (optional, used as fallback when Redis unavailable)
  */
-async function setOnboardingStatus(accountId, status) {
-  if (!redisClient || !accountId) return;
-  const key = `user:${accountId}:onboarding_status`;
-  await redisClient.set(key, status);
+async function setOnboardingStatus(accountId, status, session = null) {
+  if (redisClient && accountId) {
+    const key = `user:${accountId}:onboarding_status`;
+    await redisClient.set(key, status);
+  }
+  // Store in session only when Redis unavailable (for persistence during browser session)
+  if (!redisClient && session) {
+    session.onboardingStatus = status;
+  }
 }
 
 /**
@@ -381,14 +394,36 @@ if (!redisClient) {
     getCurrentApiKeyHash: () => null,
     setApiKeyHash: () => {},
     invalidateAllSessionsForAccount: () => {},
-    setOnboardingStatus: () => {},
-    getOnboardingStatus: () => 'pending', // Default to pending for in-memory mode (no Redis)
+    setOnboardingStatus: (accountId, status, session) => {
+      if (session) session.onboardingStatus = status;
+    },
+    getOnboardingStatus: (accountId, session) => {
+      return session?.onboardingStatus || 'pending';
+    },
     hasExistingData: () => false,
-    getSettings: () => ({}),
-    setSettings: () => {},
-    getThemes: () => defaultThemes, // Return default themes instead of empty object
-    setTheme: () => {},
-    deleteTheme: () => {},
+    getSettings: (accountId, session) => {
+      return session?.settings || portalSettings;
+    },
+    setSettings: (accountId, newSettings, session) => {
+      if (session) {
+        const currentSettings = session.settings || portalSettings;
+        session.settings = { ...currentSettings, ...newSettings };
+      }
+    },
+    getThemes: (accountId, session) => {
+      return session?.themes || themes;
+    },
+    setTheme: (accountId, themeId, themeData, session) => {
+      if (session) {
+        if (!session.themes) session.themes = { ...themes };
+        session.themes[themeId] = themeData;
+      }
+    },
+    deleteTheme: (accountId, themeId, session) => {
+      if (session && session.themes) {
+        delete session.themes[themeId];
+      }
+    },
     getTemplateLabels: () => ({}),
     setTemplateLabels: () => {},
     setTemplateLabel: () => {},
@@ -1034,51 +1069,71 @@ function saveFormFieldsDefaults(fields) {
 //
 
 // 1. Themes
-async function getThemes(accountId) {
-  // Phase 2: Use Redis for per-user themes
-  if (!redisClient) {
-    return themes; // Fallback
+async function getThemes(accountId, session = null) {
+  // Use Redis if available (persistent storage)
+  if (redisClient && accountId) {
+    const key = `user:${accountId}:themes`;
+    const cached = await redisClient.get(key);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // First-time: seed from global themes file
+    if (VERBOSE_LOGGING) console.log(`[REDIS] Seeding themes for user ${accountId}`);
+    await redisClient.set(key, JSON.stringify(themes));
+    return themes;
   }
 
-  const key = `user:${accountId}:themes`;
-  const cached = await redisClient.get(key);
-
-  if (cached) {
-    return JSON.parse(cached);
+  // Fallback to session when Redis unavailable (only persists during browser session)
+  if (session?.themes) {
+    return session.themes;
   }
 
-  // First-time: seed from global themes file
-  if (VERBOSE_LOGGING) console.log(`[REDIS] Seeding themes for user ${accountId}`);
-  await redisClient.set(key, JSON.stringify(themes));
-  return themes;
+  return themes; // Default themes
 }
 
-async function setTheme(accountId, themeId, themeData) {
+async function setTheme(accountId, themeId, themeData, session = null) {
   // Phase 3: Redis-only, no global file writes
-  if (!redisClient) {
-    console.error('[DAL] Redis unavailable, cannot save theme');
+  if (redisClient && accountId) {
+    const userThemes = await getThemes(accountId);
+    userThemes[themeId] = themeData;
+    const key = `user:${accountId}:themes`;
+    await redisClient.set(key, JSON.stringify(userThemes));
+    if (VERBOSE_LOGGING) console.log(`[REDIS] Updated theme ${themeId} for user ${accountId}`);
+  } else if (!redisClient && !session) {
+    console.error('[DAL] Redis unavailable and no session, cannot save theme');
     throw new Error('Database unavailable');
   }
 
-  const userThemes = await getThemes(accountId);
-  userThemes[themeId] = themeData;
-  const key = `user:${accountId}:themes`;
-  await redisClient.set(key, JSON.stringify(userThemes));
-  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated theme ${themeId} for user ${accountId}`);
+  // Store in session only when Redis unavailable (for persistence during browser session)
+  if (!redisClient && session) {
+    if (!session.themes) {
+      session.themes = { ...themes }; // Initialize with defaults
+    }
+    session.themes[themeId] = themeData;
+    if (VERBOSE_LOGGING) console.log(`[SESSION] Updated theme ${themeId} in session`);
+  }
 }
 
-async function deleteTheme(accountId, themeId) {
+async function deleteTheme(accountId, themeId, session = null) {
   // Phase 3: Redis-only, no global file writes
-  if (!redisClient) {
-    console.error('[DAL] Redis unavailable, cannot delete theme');
+  if (redisClient && accountId) {
+    const userThemes = await getThemes(accountId);
+    delete userThemes[themeId];
+    const key = `user:${accountId}:themes`;
+    await redisClient.set(key, JSON.stringify(userThemes));
+    if (VERBOSE_LOGGING) console.log(`[REDIS] Deleted theme ${themeId} for user ${accountId}`);
+  } else if (!redisClient && !session) {
+    console.error('[DAL] Redis unavailable and no session, cannot delete theme');
     throw new Error('Database unavailable');
   }
 
-  const userThemes = await getThemes(accountId);
-  delete userThemes[themeId];
-  const key = `user:${accountId}:themes`;
-  await redisClient.set(key, JSON.stringify(userThemes));
-  if (VERBOSE_LOGGING) console.log(`[REDIS] Deleted theme ${themeId} for user ${accountId}`);
+  // Update session only when Redis unavailable
+  if (!redisClient && session && session.themes) {
+    delete session.themes[themeId];
+    if (VERBOSE_LOGGING) console.log(`[SESSION] Deleted theme ${themeId} from session`);
+  }
 }
 
 // Admin bulk theme operations
@@ -1221,38 +1276,49 @@ async function setTemplateMergeFields(accountId, templateId, hasMergeFields, mer
 }
 
 // 3. Settings
-async function getSettings(accountId) {
-  // Phase 2: Use Redis for per-user settings
-  if (!redisClient) {
-    // Fallback if Redis not available
+async function getSettings(accountId, session = null) {
+  // Use Redis if available (persistent storage)
+  if (redisClient && accountId) {
+    const key = `user:${accountId}:settings`;
+    const cached = await redisClient.get(key);
+
+    if (cached) {
+      return JSON.parse(cached);
+    }
+
+    // First-time: seed from global settings file
+    if (VERBOSE_LOGGING) console.log(`[REDIS] Seeding settings for user ${accountId}`);
+    await redisClient.set(key, JSON.stringify(portalSettings));
     return portalSettings;
   }
 
-  const key = `user:${accountId}:settings`;
-  const cached = await redisClient.get(key);
-
-  if (cached) {
-    return JSON.parse(cached);
+  // Fallback to session when Redis unavailable (only persists during browser session)
+  if (session?.settings) {
+    return session.settings;
   }
 
-  // First-time: seed from global settings file
-  if (VERBOSE_LOGGING) console.log(`[REDIS] Seeding settings for user ${accountId}`);
-  await redisClient.set(key, JSON.stringify(portalSettings));
-  return portalSettings;
+  return portalSettings; // Default settings
 }
 
-async function setSettings(accountId, newSettings) {
+async function setSettings(accountId, newSettings, session = null) {
   // Phase 3: Redis-only, no global file writes
-  if (!redisClient) {
-    console.error('[DAL] Redis unavailable, cannot save settings');
+  if (redisClient && accountId) {
+    const key = `user:${accountId}:settings`;
+    const currentSettings = await getSettings(accountId);
+    const updatedSettings = { ...currentSettings, ...newSettings };
+    await redisClient.set(key, JSON.stringify(updatedSettings));
+    if (VERBOSE_LOGGING) console.log(`[REDIS] Updated settings for user ${accountId}`);
+  } else if (!redisClient && !session) {
+    console.error('[DAL] Redis unavailable and no session, cannot save settings');
     throw new Error('Database unavailable');
   }
 
-  const key = `user:${accountId}:settings`;
-  const currentSettings = await getSettings(accountId);
-  const updatedSettings = { ...currentSettings, ...newSettings };
-  await redisClient.set(key, JSON.stringify(updatedSettings));
-  if (VERBOSE_LOGGING) console.log(`[REDIS] Updated settings for user ${accountId}`);
+  // Store in session only when Redis unavailable (for persistence during browser session)
+  if (!redisClient && session) {
+    const currentSettings = await getSettings(accountId, session);
+    session.settings = { ...currentSettings, ...newSettings };
+    if (VERBOSE_LOGGING) console.log(`[SESSION] Updated settings in session`);
+  }
 }
 
 // 4. Form Fields Defaults

@@ -266,7 +266,7 @@ router.delete('/api/users/:accountId/data/:dataType', requireSession, requireAdm
     // If user has no remaining data, reset onboarding status so they see the setup flow
     const userStillHasData = await hasExistingData(accountId);
     if (!userStillHasData) {
-      await setOnboardingStatus(accountId, 'pending');
+      await setOnboardingStatus(accountId, 'pending', req.session);
       console.log(`[ADMIN] Reset onboarding status for ${accountId} (no data remaining)`);
     }
 

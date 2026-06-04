@@ -159,7 +159,7 @@ router.get('/', requireSession, async (req, res) => {
   const userHasExistingData = await hasExistingData(accountId);
 
   const userSettings = await getSettings(accountId);
-  const userThemes = await getThemes(accountId);
+  const userThemes = await getThemes(accountId, req.session);
   // Use selectedTheme for session persistence, fallback to defaultTheme (legacy), then first theme
   const defaultThemeId = (userSettings.selectedTheme && userThemes[userSettings.selectedTheme])
     ? userSettings.selectedTheme
@@ -180,7 +180,7 @@ router.get('/', requireSession, async (req, res) => {
   delete req.session.apiKeyRotationNotice;
 
   // Check onboarding status
-  const onboardingStatus = await getOnboardingStatus(accountId);
+  const onboardingStatus = await getOnboardingStatus(accountId, req.session);
   const showOnboarding = onboardingStatus === 'pending';
 
   // Check if user has Dropbox Sign admin role (role code 'a')

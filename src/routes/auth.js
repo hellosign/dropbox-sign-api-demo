@@ -204,12 +204,12 @@ router.post('/login',
           apiKeyChanged = true;
 
           // Set onboarding status to pending to offer "Start Fresh" or "Continue" choice
-          await setOnboardingStatus(accountInfo.account_id, 'pending');
+          await setOnboardingStatus(accountInfo.account_id, 'pending', req.session);
           if (VERBOSE_LOGGING) console.log(`[ONBOARDING] API key rotation detected, showing onboarding options`);
         } else if (!currentApiKeyHash) {
           if (VERBOSE_LOGGING) console.log(`[FIRST LOGIN] Setting initial API key hash for account ${accountInfo.account_id}`);
           // Set onboarding status to pending for first-time users
-          await setOnboardingStatus(accountInfo.account_id, 'pending');
+          await setOnboardingStatus(accountInfo.account_id, 'pending', req.session);
           if (VERBOSE_LOGGING) console.log(`[ONBOARDING] New user detected: ${accountInfo.account_id}`);
         }
 

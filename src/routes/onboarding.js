@@ -260,7 +260,7 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
     }
 
     // Mark onboarding as completed
-    await setOnboardingStatus(accountId, 'completed');
+    await setOnboardingStatus(accountId, 'completed', req.session);
 
     // Invalidate API apps cache so new apps appear immediately
     if (req.session.appsCache) {
@@ -319,7 +319,7 @@ router.post('/onboarding/dismiss', requireAuth, async (req, res) => {
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
-  await setOnboardingStatus(accountId, 'dismissed');
+  await setOnboardingStatus(accountId, 'dismissed', req.session);
   console.log(`[ONBOARDING] User ${accountId} dismissed onboarding`);
   res.json({ success: true });
 });
@@ -357,7 +357,7 @@ router.post('/onboarding/reset-data', requireAuth, async (req, res) => {
     }
 
     // Reset onboarding status to pending so they see first-time flow
-    await setOnboardingStatus(accountId, 'pending');
+    await setOnboardingStatus(accountId, 'pending', req.session);
 
     console.log(`[ONBOARDING] Successfully cleared all data for ${accountId}`);
     res.json({ success: true });

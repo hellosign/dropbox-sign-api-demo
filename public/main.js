@@ -2446,7 +2446,7 @@ embedBtn.addEventListener('click', async () => {
 
   // Check if API App is in test mode for embedded signing
   try {
-    const testModeRes = await fetchWithCsrf('/api/test-mode');
+    const testModeRes = await fetchWithCsrf('/api-apps/test-mode');
     const testModeData = await testModeRes.json();
     const isTestMode = testModeData.testMode?.[selectedClientId];
 
@@ -2462,8 +2462,8 @@ embedBtn.addEventListener('click', async () => {
       if (userConfirm) {
         // Switch to test mode
         const newTestMode = { ...testModeData.testMode, [selectedClientId]: true };
-        await fetchWithCsrf('/api/test-mode', {
-          method: 'POST',
+        await fetchWithCsrf('/api-apps/test-mode', {
+          method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ testMode: newTestMode })
         });

@@ -16,7 +16,7 @@ router.get('/', requireSession, async (req, res) => {
   const accountId = req.session?.accountInfo?.account_id || 'global';
   const { getThemes } = req.app.locals.redisHelpers;
 
-  const userThemes = await getThemes(accountId);
+  const userThemes = await getThemes(accountId, req.session);
   res.json(userThemes);
 });
 
@@ -30,16 +30,16 @@ router.put('/:id', requireSession, express.json(), async (req, res) => {
   const updatedTheme = req.body;
   const { getThemes, setTheme } = req.app.locals.redisHelpers;
 
-  const userThemes = await getThemes(accountId);
+  const userThemes = await getThemes(accountId, req.session);
 
   // Allow PUT to create new themes (for "Save As" functionality)
   const isNewTheme = !userThemes[themeId];
 
   // Update or create theme via DAL
   try {
-    await setTheme(accountId, themeId, updatedTheme);
+    await setTheme(accountId, themeId, updatedTheme, req.session);
     console.log(`[Themes] ${isNewTheme ? 'Created' : 'Updated'} theme:`, themeId);
-    const updatedThemes = await getThemes(accountId);
+    const updatedThemes = await getThemes(accountId, req.session);
     res.json({ success: true, theme: updatedThemes[themeId] });
   } catch (error) {
     console.error("Error saving theme:", error);
@@ -59,7 +59,7 @@ router.delete('/:id', requireSession, express.json(), async (req, res) => {
 
   console.log(`[DELETE /themes/${themeId}] Request received, deleteTemplates:`, deleteTemplates);
 
-  const userThemes = await getThemes(accountId);
+  const userThemes = await getThemes(accountId, req.session);
   if (!userThemes[themeId]) {
     console.log(`[DELETE /themes/${themeId}] Theme not found`);
     return res.status(404).json({ error: "Theme not found" });
@@ -109,7 +109,7 @@ router.delete('/:id', requireSession, express.json(), async (req, res) => {
 
     // Delete theme via DAL
     console.log(`[DELETE /themes/${themeId}] Deleting theme...`);
-    await deleteTheme(accountId, themeId);
+    await deleteTheme(accountId, themeId, req.session);
     console.log(`[DELETE /themes/${themeId}] Theme deleted successfully`);
 
     const responseData = {
