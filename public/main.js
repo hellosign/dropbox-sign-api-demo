@@ -34,7 +34,10 @@ async function fetchWithCsrf(url, options = {}) {
   // Prevent fetch from following redirects (e.g., to /login on session expiry)
   const response = await fetch(url, {
     ...options,
-    headers,
+    headers: {
+      ...(options.headers || {}), // Start with options headers (e.g., Content-Type)
+      ...headers // Then add/override with API key and CSRF token (these take priority)
+    },
     redirect: 'manual'
   });
 
