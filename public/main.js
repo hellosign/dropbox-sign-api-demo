@@ -1196,6 +1196,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const themeSelect = document.getElementById('themeSelect');
+  if (!themeSelect) {
+    console.warn('[Theme] themeSelect element not found - user may not be logged in');
+    return; // Exit early if element doesn't exist
+  }
+
   Object.entries(themesData).forEach(([id, theme]) => {
     const o = document.createElement('option');
     o.value = id;
