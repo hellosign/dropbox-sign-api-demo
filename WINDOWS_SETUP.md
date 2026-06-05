@@ -40,9 +40,42 @@ You should see version numbers (e.g., `v18.20.0` and `10.5.0`).
 
 ### 2. Install Redis (Required)
 
-Redis is required for session persistence and data storage. Since Windows doesn't have a native Redis build, we'll use **WSL2 (Windows Subsystem for Linux)**.
+Redis is required for session persistence and data storage. Choose the method that works best for you:
 
-#### Install WSL2 and Redis:
+#### Option A: Memurai (Native Windows Installer - Recommended)
+
+**Easiest option** - Download and install like any Windows application.
+
+**Download and Install:**
+
+1. Go to: https://www.memurai.com/get-memurai
+2. Download **Memurai Developer Edition** (free)
+3. Run the installer (`.msi` file)
+4. Follow the installation wizard:
+   - ✅ Keep default installation path
+   - ✅ Select **"Install as Windows Service"** (starts automatically with Windows)
+   - ✅ Click **Install**
+5. Redis is now running as a Windows service!
+
+**Verify Installation:**
+
+Open **Command Prompt** or **PowerShell** and run:
+```bash
+memurai-cli ping
+```
+
+Should return: `PONG`
+
+**Note:** Memurai uses port 6379 by default, same as Redis. Your `.env` file should have:
+```
+REDIS_URL=redis://127.0.0.1:6379
+```
+
+---
+
+#### Option B: WSL2 (Windows Subsystem for Linux)
+
+If you prefer using WSL2:
 
 **Step 1: Install WSL2**
 
@@ -65,14 +98,14 @@ sudo apt install redis-server -y
 
 **Step 3: Start Redis**
 
-Every time you restart Windows, you'll need to start Redis. In **Ubuntu terminal**, run:
+Every time you restart Windows, start Redis by opening **Ubuntu terminal** and running:
 ```bash
 sudo service redis-server start
 ```
 
 **💡 Tip:** Keep the Ubuntu terminal open in the background while using the demo portal.
 
-#### Verify Redis is Running:
+**Verify Redis is Running:**
 
 In the **Ubuntu terminal**, run:
 ```bash
@@ -80,15 +113,6 @@ redis-cli ping
 ```
 
 Should return: `PONG`
-
----
-
-**Alternative: Memurai (Native Windows Redis)**
-
-If you prefer not to use WSL2, [Memurai](https://www.memurai.com/) is a native Windows Redis implementation:
-1. Download Memurai Developer Edition (free): https://www.memurai.com/get-memurai
-2. Install and start the service
-3. Use `REDIS_URL=redis://127.0.0.1:6379` in your `.env`
 
 ---
 
