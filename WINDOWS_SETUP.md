@@ -38,7 +38,49 @@ You should see version numbers (e.g., `v18.20.0` and `10.5.0`).
 
 ---
 
-### 2. Install Git (Optional - for cloning via command line)
+### 2. Install Redis (Required)
+
+Redis is required for session persistence and data storage.
+
+#### Option A: Using Docker (Recommended for Windows)
+
+**Easiest method** - One command and it's running:
+
+1. Install [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
+2. Open **Command Prompt** or **PowerShell**
+3. Run:
+```bash
+docker run -d -p 6379:6379 --name redis --restart unless-stopped redis:alpine
+```
+
+This starts Redis and makes it automatically restart with Windows.
+
+#### Option B: Using WSL2 (Windows Subsystem for Linux)
+
+1. Install WSL2: https://docs.microsoft.com/en-us/windows/wsl/install
+2. Open **Ubuntu** from Start Menu
+3. Run:
+```bash
+sudo apt update
+sudo apt install redis-server
+sudo service redis-server start
+```
+
+#### Verify Redis is Running:
+
+```bash
+# If using Docker:
+docker exec redis redis-cli ping
+
+# If using WSL2:
+redis-cli ping
+```
+
+Should return: `PONG`
+
+---
+
+### 3. Install Git (Optional - for cloning via command line)
 
 If you want to use `git clone` command, install Git for Windows.
 
@@ -64,7 +106,7 @@ You should see: `git version 2.x.x`
 
 ---
 
-### 3. Create a Dropbox Sign Account
+### 4. Create a Dropbox Sign Account
 
 You'll need this to log in to the portal.
 
