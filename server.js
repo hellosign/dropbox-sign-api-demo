@@ -249,9 +249,27 @@ app.use(cookieParser());
 
 // Rate limiters imported from middleware/rate-limit.js
 
-// Redis client setup (optional - falls back to memory store if not configured)
+// Redis client setup (REQUIRED for proper session and data persistence)
 let redisClient;
 const redisUrl = process.env.REDIS_URL || process.env.REDIS_HOST;
+
+// Check Redis requirement
+if (!redisUrl && !process.env.ALLOW_NO_REDIS) {
+  console.error('\n❌ ERROR: Redis is required for this application to function properly.\n');
+  console.error('Sessions, themes, settings, and other data require Redis for persistence.\n');
+  console.error('Setup instructions:');
+  console.error('  1. Install Redis:');
+  console.error('     - macOS: brew install redis && brew services start redis');
+  console.error('     - Ubuntu: sudo apt install redis-server');
+  console.error('     - Docker: docker run -d -p 6379:6379 redis:alpine\n');
+  console.error('  2. Add to your .env file:');
+  console.error('     REDIS_URL=redis://127.0.0.1:6379\n');
+  console.error('  3. Restart the application\n');
+  console.error('To run without Redis (NOT RECOMMENDED - data will not persist):');
+  console.error('  Set ALLOW_NO_REDIS=true in your .env file\n');
+  process.exit(1);
+}
+
 if (redisUrl) {
   try {
     // Use separate Redis databases per environment for session isolation
@@ -349,8 +367,14 @@ if (redisUrl) {
   }
 }
 
-// If Redis not available, provide stub functions that do nothing
+// If Redis not available, provide stub functions (ALLOW_NO_REDIS mode - data will not persist)
 if (!redisClient) {
+  console.warn('\n⚠️  WARNING: Running without Redis (ALLOW_NO_REDIS=true)');
+  console.warn('⚠️  Sessions, themes, settings will NOT persist across:');
+  console.warn('⚠️    - Server restarts');
+  console.warn('⚠️    - Browser hard refreshes');
+  console.warn('⚠️    - Cookie expiration');
+  console.warn('⚠️  This mode is for testing only. Install Redis for production use.\n');
   // Load default themes from config
   let defaultThemes = {};
   try {
@@ -2157,7 +2181,11 @@ function validateConfig() {
 
   // Success message
   console.log(`\n✓ Environment: ${IS_PRODUCTION ? 'PRODUCTION' : 'DEVELOPMENT'}`);
-  console.log(`✓ Redis: ${process.env.REDIS_URL || process.env.REDIS_HOST || 'Memory (sessions not persisted)'}\n`);
+  if (redisClient) {
+    console.log(`✓ Redis: ${process.env.REDIS_URL || process.env.REDIS_HOST}\n`);
+  } else {
+    console.log(`⚠️  Redis: DISABLED (ALLOW_NO_REDIS=true) - Data will not persist!\n`);
+  }
 }
 
 validateConfig();

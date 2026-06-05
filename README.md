@@ -185,6 +185,7 @@ All configuration is done via `docker-compose.yml`. No `.env` file needed!
 
 **Prerequisites:**
 - **Node.js 22+** and npm
+- **Redis** - Required for session and data persistence
 - **Git** - [Download here](https://git-scm.com/downloads) (or download the project as a [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip))
 - **Dropbox Sign Account** - [Sign up here](https://www.hellosign.com) (free account works)
 
@@ -192,7 +193,32 @@ All configuration is done via `docker-compose.yml`. No `.env` file needed!
 
 ### Step-by-Step Setup
 
-#### 1. Get the Code
+#### 1. Install Redis
+
+**macOS (Homebrew):**
+```bash
+brew install redis
+brew services start redis
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt update
+sudo apt install redis-server
+sudo systemctl start redis-server
+```
+
+**Windows:**
+- Use [WSL2](https://docs.microsoft.com/en-us/windows/wsl/install) with Ubuntu, then follow Ubuntu instructions above
+- Or use Docker: `docker run -d -p 6379:6379 redis:alpine`
+
+**Verify Redis is running:**
+```bash
+redis-cli ping
+# Should return: PONG
+```
+
+#### 2. Get the Code
 
 **Option A: Clone with Git**
 ```bash
@@ -205,13 +231,13 @@ cd dropbox-sign-api-demo
 2. Extract the ZIP to a folder of your choice
 3. Open a terminal and `cd` into the extracted folder
 
-#### 2. Install Dependencies
+#### 3. Install Dependencies
 
 ```bash
 npm install
 ```
 
-#### 3. Start the Application
+#### 4. Start the Application
 
 ```bash
 npm start
@@ -238,6 +264,7 @@ This setup will:
   1. Create your .env configuration file
   2. Generate secure session and CSRF keys
   3. Configure your admin email for login access
+  4. Configure Redis connection
 
 Run automatic setup? (yes/no): yes
 
@@ -256,14 +283,14 @@ Run automatic setup? (yes/no): yes
 Admin email address: demo@example.com
   ✓ Admin email set: demo@example.com
 
-💾 Step 4: Redis configuration (optional)...
+💾 Step 4: Redis configuration (required)...
 
-   Redis enables session persistence across restarts,
-   API log history, and theme-to-template mappings.
-   Without Redis, the app uses in-memory storage (data lost on restart).
+   Redis is required for session persistence, API log history,
+   and theme-to-template mappings. Make sure Redis is running
+   before continuing (see Step 1 above).
 
-Do you have Redis installed? (yes/no): no
-  ✓ Using in-memory storage (you can add Redis later in .env)
+Redis URL (default: redis://127.0.0.1:6379): 
+  ✓ Redis URL set: redis://127.0.0.1:6379
 
 ╔════════════════════════════════════════════════════════╗
 ║            ✅ Setup Complete!                          ║
