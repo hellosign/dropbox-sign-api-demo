@@ -60,7 +60,7 @@ This demo portal lets you experience the full power of Dropbox Sign APIs in real
 
 **Choose your setup method:**
 - **🐳 [Docker Setup](#docker-setup-recommended)** (Recommended) - One command, includes Redis, works everywhere
-- **💻 [Native Setup](#native-setup)** - Run directly on your machine (Node.js required)
+- **💻 [Native Setup](#native-setup)** - Run directly on your machine (Node.js + Redis required)
 
 ---
 
