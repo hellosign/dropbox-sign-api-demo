@@ -48,13 +48,9 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
   try {
     const createdApps = [];
     const errors = [];
-    const warnings = [];
 
     // Track which presets have callback URLs to configure webhooks later
     const presetsWithCallbacks = new Map(); // Map of appName -> hasCallback
-
-    // Detect if we're in localhost mode (no DOMAIN configured)
-    const isLocalhostMode = !process.env.DOMAIN && !process.env.CALLBACK_URL;
 
     // Create apps from presets
     for (const preset of onboardingAppPresets) {
@@ -81,9 +77,12 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
       // Track if this preset has a callback URL
       presetsWithCallbacks.set(appName, !!callbackUrl);
 
+      // Declare domains outside try block so it's accessible in error handler
+      let domains = [];
+
       try {
         // Replace ${DOMAIN} placeholder in domains
-        let domains = preset.domains.map(domain => {
+        domains = preset.domains.map(domain => {
           if (domain.includes('${DOMAIN}')) {
             // Try to get domain from DOMAIN env var, or extract from CALLBACK_URL
             let actualDomain = process.env.DOMAIN;
@@ -96,10 +95,9 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
               }
             }
 
-            // If still no domain, detect current environment and use localhost
+            // If still no domain, throw error (Dropbox Sign API doesn't accept localhost)
             if (!actualDomain) {
-              actualDomain = 'localhost';
-              console.warn(`[ONBOARDING] No DOMAIN configured - using localhost for ${appName} (callbacks will be disabled)`);
+              throw new Error('DOMAIN_REQUIRED_FOR_API_APPS');
             }
 
             return domain.replace('${DOMAIN}', actualDomain);
@@ -107,20 +105,14 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
           return domain;
         });
 
-        // Don't filter out localhost - Dropbox Sign allows it for local development
-        // domains = domains.filter(d => d !== 'localhost');
-
         const appData = new DropboxSign.ApiAppCreateRequest();
         appData.name = appName;
         appData.domains = domains;
 
         console.log(`[ONBOARDING] Creating ${appName} with domains:`, domains);
 
-        // Only set callback URL if not in localhost mode
-        if (callbackUrl && !isLocalhostMode) {
+        if (callbackUrl) {
           appData.callbackUrl = callbackUrl;
-        } else if (callbackUrl && isLocalhostMode) {
-          console.warn(`[ONBOARDING] Skipping callback URL for ${appName} - localhost mode (no DOMAIN configured)`);
         }
 
         // Configure OAuth if scopes are defined
@@ -169,10 +161,10 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
         }
 
         // Check for environment configuration error first
-        if (err.message && err.message.includes('DOMAIN or CALLBACK_URL')) {
+        if (err.message && (err.message.includes('DOMAIN_REQUIRED_FOR_API_APPS') || err.message.includes('DOMAIN or CALLBACK_URL'))) {
           errors.push({
             app: appName,
-            error: 'Server configuration error - DOMAIN environment variable not set',
+            error: 'DOMAIN environment variable required',
             isConfigError: true
           });
           continue; // Skip to next app
@@ -281,11 +273,7 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
         success: true,
         created: createdApps.length,
         apps: createdApps.map(a => ({ clientId: a.clientId, name: a.name })),
-        errors: errors.length > 0 ? errors : undefined,
-        isLocalhostMode,
-        localhostWarning: isLocalhostMode
-          ? 'Apps created successfully in localhost mode. Callback webhooks are disabled because DOMAIN is not configured. To enable callbacks, set DOMAIN and CALLBACK_URL in your .env file and restart.'
-          : undefined
+        errors: errors.length > 0 ? errors : undefined
       });
     } else {
       // Check if all errors are plan restrictions or config errors
@@ -296,17 +284,17 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
         error: isPlanRestriction
           ? 'Dropbox Sign didn\'t allow us to create demo apps for your account.'
           : isConfigError
-          ? 'Environment Configuration Required'
+          ? 'DOMAIN Configuration Required'
           : 'Failed to create demo apps',
         message: isPlanRestriction
           ? 'This usually means your account is on a "per user" plan instead of an "API" plan. API Apps can only be created on API-enabled plans.'
           : isConfigError
-          ? 'API apps could not be created because required environment variables are not configured. Set DOMAIN (e.g. "example.com") and CALLBACK_URL (must be HTTPS, e.g. "https://example.com/webhook") in your .env file, then restart the server.'
+          ? 'Dropbox Sign API requires a public domain to create API apps. Localhost is not supported. Set DOMAIN to a public hostname (e.g. "example.com" or "ngrok.io") in your .env file, then restart the server.'
           : 'Unable to create demo apps. Please check the details below.',
         suggestion: isPlanRestriction
           ? 'You can still use this portal with any existing API apps in your account. To create new API apps, contact Dropbox Sign support to upgrade to an API plan.'
           : isConfigError
-          ? 'You can skip this step and use existing API apps in your account, or configure the environment variables and try again.'
+          ? 'For local development: Use ngrok or a similar tunneling service to get a public URL, then set that as your DOMAIN. Or skip onboarding and use existing API apps from your account.'
           : null,
         details: errors,
         isPlanRestriction,
