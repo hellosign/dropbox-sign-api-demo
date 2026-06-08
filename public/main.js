@@ -5485,6 +5485,7 @@ async function createDemoApps() {
             We've created <strong>${result.created} API app(s)</strong> for you to start testing.<br>
             Check the <strong>API Apps</strong> tab to see them in action.
           </p>
+          <div id="localhost-warning-container"></div>
           <p style="color:#16a34a;font-weight:500;margin-bottom:24px;">
             Enjoy exploring the Sign Portal! 🚀
           </p>
@@ -5493,6 +5494,38 @@ async function createDemoApps() {
           </button>
         </div>
       `;
+
+      // Add localhost warning using safe DOM methods
+      if (result.isLocalhostMode && result.localhostWarning) {
+        const warningContainer = document.getElementById('localhost-warning-container');
+        const warningBox = document.createElement('div');
+        warningBox.style.cssText = 'background:#fef3c7;border:1px solid #fbbf24;border-radius:8px;padding:12px;margin:16px 0;text-align:left;';
+
+        const warningContent = document.createElement('div');
+        warningContent.style.cssText = 'display:flex;gap:8px;align-items:start;';
+
+        const icon = document.createElement('span');
+        icon.style.fontSize = '20px';
+        icon.textContent = '⚠️';
+
+        const textContainer = document.createElement('div');
+        textContainer.style.flex = '1';
+
+        const title = document.createElement('strong');
+        title.style.cssText = 'color:#92400e;font-size:14px;';
+        title.textContent = 'Localhost Mode Detected';
+
+        const message = document.createElement('p');
+        message.style.cssText = 'margin:8px 0 0;color:#78350f;font-size:13px;line-height:1.5;';
+        message.textContent = result.localhostWarning;
+
+        textContainer.appendChild(title);
+        textContainer.appendChild(message);
+        warningContent.appendChild(icon);
+        warningContent.appendChild(textContainer);
+        warningBox.appendChild(warningContent);
+        warningContainer.appendChild(warningBox);
+      }
 
       // Add event listener to the "Get Started" button
       setTimeout(() => {

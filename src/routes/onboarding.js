@@ -48,9 +48,13 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
   try {
     const createdApps = [];
     const errors = [];
+    const warnings = [];
 
     // Track which presets have callback URLs to configure webhooks later
     const presetsWithCallbacks = new Map(); // Map of appName -> hasCallback
+
+    // Detect if we're in localhost mode (no DOMAIN configured)
+    const isLocalhostMode = !process.env.DOMAIN && !process.env.CALLBACK_URL;
 
     // Create apps from presets
     for (const preset of onboardingAppPresets) {
@@ -92,9 +96,10 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
               }
             }
 
-            // If still no domain, throw error instead of using invalid fallback
+            // If still no domain, detect current environment and use localhost
             if (!actualDomain) {
-              throw new Error('DOMAIN or CALLBACK_URL environment variable must be set to create API apps');
+              actualDomain = 'localhost';
+              console.warn(`[ONBOARDING] No DOMAIN configured - using localhost for ${appName} (callbacks will be disabled)`);
             }
 
             return domain.replace('${DOMAIN}', actualDomain);
@@ -102,8 +107,8 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
           return domain;
         });
 
-        // Filter out localhost if it's in the domains (Dropbox Sign may reject it)
-        domains = domains.filter(d => d !== 'localhost');
+        // Don't filter out localhost - Dropbox Sign allows it for local development
+        // domains = domains.filter(d => d !== 'localhost');
 
         const appData = new DropboxSign.ApiAppCreateRequest();
         appData.name = appName;
@@ -111,8 +116,11 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
 
         console.log(`[ONBOARDING] Creating ${appName} with domains:`, domains);
 
-        if (callbackUrl) {
+        // Only set callback URL if not in localhost mode
+        if (callbackUrl && !isLocalhostMode) {
           appData.callbackUrl = callbackUrl;
+        } else if (callbackUrl && isLocalhostMode) {
+          console.warn(`[ONBOARDING] Skipping callback URL for ${appName} - localhost mode (no DOMAIN configured)`);
         }
 
         // Configure OAuth if scopes are defined
@@ -273,7 +281,11 @@ router.post('/onboarding/create-apps', strictLimiter, requireAuth, async (req, r
         success: true,
         created: createdApps.length,
         apps: createdApps.map(a => ({ clientId: a.clientId, name: a.name })),
-        errors: errors.length > 0 ? errors : undefined
+        errors: errors.length > 0 ? errors : undefined,
+        isLocalhostMode,
+        localhostWarning: isLocalhostMode
+          ? 'Apps created successfully in localhost mode. Callback webhooks are disabled because DOMAIN is not configured. To enable callbacks, set DOMAIN and CALLBACK_URL in your .env file and restart.'
+          : undefined
       });
     } else {
       // Check if all errors are plan restrictions or config errors
