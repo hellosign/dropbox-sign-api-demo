@@ -3356,6 +3356,28 @@ embedBtn.addEventListener('click', async () => {
           const checkboxContainer = document.createElement('div');
           checkboxContainer.className = 'label-checkboxes';
 
+          // Helper function to update current labels badges
+          const updateCurrentLabelsColumn = (selectedLabels) => {
+            while (tdCurrent.firstChild) {
+              tdCurrent.removeChild(tdCurrent.firstChild);
+            }
+            if (selectedLabels.length > 0) {
+              selectedLabels.forEach(lbl => {
+                const badge = document.createElement('span');
+                badge.className = 'label-badge';
+                const theme = themesData[lbl];
+                badge.textContent = theme ? theme.name : lbl;
+                tdCurrent.appendChild(badge);
+              });
+            } else {
+              const noneSpan = document.createElement('span');
+              noneSpan.style.color = '#94a3b8';
+              noneSpan.style.fontStyle = 'italic';
+              noneSpan.textContent = 'None';
+              tdCurrent.appendChild(noneSpan);
+            }
+          };
+
           const checkboxes = [];
           themeOptions.forEach(({ id, name }) => {
             const wrapper = document.createElement('label');
@@ -3365,6 +3387,67 @@ embedBtn.addEventListener('click', async () => {
             cb.value = id;
             cb.setAttribute('data-tooltip', 'templateLabelAssignment');
             if (tmpl.labels && tmpl.labels.includes(id)) cb.checked = true;
+
+            // Auto-save on checkbox change
+            cb.addEventListener('change', async (e) => {
+              const checkbox = e.target;
+              const wasChecked = checkbox.checked;
+
+              // Disable all checkboxes in this row during save
+              checkboxes.forEach(c => c.disabled = true);
+
+              // Create and show loading indicator
+              const loader = document.createElement('span');
+              loader.style.cssText = 'margin-left: 4px; font-size: 11px; color: #6366f1;';
+              loader.textContent = '⏳';
+              wrapper.appendChild(loader);
+
+              try {
+                const selectedLabels = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
+                const res = await fetchWithCsrf(`/api-templates/${tmpl.id}/metadata`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ labels: selectedLabels }),
+                });
+
+                if (!res.ok) {
+                  const err = await res.json();
+                  throw new Error(err.error || 'Failed to save');
+                }
+
+                // Update the current labels column
+                updateCurrentLabelsColumn(selectedLabels);
+
+                // Update the in-memory cache directly
+                const cached = allTemplates.find(t => t.id === tmpl.id);
+                if (cached) cached.labels = selectedLabels;
+
+                // Refresh the dropdown in tab 1 from cache (no fetch)
+                filterTemplatesByTheme(currentThemeId);
+
+                // Show success indicator briefly
+                loader.textContent = '✓';
+                loader.style.color = '#16a34a';
+                setTimeout(() => loader.remove(), 1500);
+
+              } catch (err) {
+                console.error('Error auto-saving theme labels:', err);
+                // Revert checkbox on error
+                checkbox.checked = !wasChecked;
+                loader.remove();
+
+                // Show error toast
+                if (window.showErrorToast) {
+                  showErrorToast('Failed to save theme assignment');
+                } else {
+                  alert('Failed to save theme assignment: ' + err.message);
+                }
+              } finally {
+                // Re-enable all checkboxes
+                checkboxes.forEach(c => c.disabled = false);
+              }
+            });
+
             checkboxes.push(cb);
             wrapper.appendChild(cb);
             wrapper.appendChild(document.createTextNode(' ' + name));
@@ -3373,72 +3456,6 @@ embedBtn.addEventListener('click', async () => {
 
           tdLabels.appendChild(checkboxContainer);
           tr.appendChild(tdLabels);
-
-          // Actions
-          const tdActions = document.createElement('td');
-          const saveBtn = document.createElement('button');
-          saveBtn.className = 'template-save-btn';
-          saveBtn.textContent = 'Save';
-          saveBtn.addEventListener('click', async () => {
-            const selectedLabels = checkboxes.filter(cb => cb.checked).map(cb => cb.value);
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
-
-            try {
-              const res = await fetchWithCsrf(`/api-templates/${tmpl.id}/metadata`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ labels: selectedLabels }),
-              });
-              if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.error || 'Failed');
-              }
-              saveBtn.textContent = 'Saved!';
-              saveBtn.style.background = '#16a34a';
-              saveBtn.style.borderColor = '#16a34a';
-
-              // Update the badges in the current labels column
-              tdCurrent.innerHTML = '';
-              if (selectedLabels.length > 0) {
-                selectedLabels.forEach(lbl => {
-                  const badge = document.createElement('span');
-                  badge.className = 'label-badge';
-                  const theme = themesData[lbl];
-                  badge.textContent = theme ? theme.name : lbl;
-                  tdCurrent.appendChild(badge);
-                });
-              } else {
-                tdCurrent.innerHTML = '<span style="color:#94a3b8; font-style:italic;">None</span>';
-              }
-
-              // Update the in-memory cache directly
-              const cached = allTemplates.find(t => t.id === tmpl.id);
-              if (cached) cached.labels = selectedLabels;
-
-              setTimeout(() => {
-                saveBtn.textContent = 'Save';
-                saveBtn.style.background = '';
-                saveBtn.style.borderColor = '';
-                saveBtn.disabled = false;
-              }, 1500);
-              // Refresh the dropdown in tab 1 from cache (no fetch)
-              filterTemplatesByTheme(currentThemeId);
-            } catch (err) {
-              console.error('Error saving labels:', err);
-              saveBtn.textContent = 'Error';
-              saveBtn.style.background = '#dc2626';
-              saveBtn.style.borderColor = '#dc2626';
-              setTimeout(() => {
-                saveBtn.textContent = 'Save';
-                saveBtn.style.background = '';
-                saveBtn.style.borderColor = '';
-                saveBtn.disabled = false;
-              }, 2000);
-            }
-          });
-          tdActions.appendChild(saveBtn);
-          tr.appendChild(tdActions);
 
           tbody.appendChild(tr);
         });
