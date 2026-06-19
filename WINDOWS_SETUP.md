@@ -149,6 +149,12 @@ You'll need this to log in to the portal.
 1. Go to: https://www.hellosign.com
 2. Sign up for a free account (or sign in if you already have one)
 
+**⚠️ Important:** Your account must be either:
+- A **Developer account** (has API access enabled), OR
+- An **Administrator account** on a team
+
+Regular team members without admin privileges cannot access API features. If you're on a team, ask your administrator to grant you API access or create a separate free developer account for testing.
+
 **Note:** You can start the application and log in without an API key. The API key is only needed later when you want to send signature requests.
 
 ---

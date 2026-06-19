@@ -77,6 +77,12 @@ This demo portal lets you experience the full power of Dropbox Sign APIs in real
 - **Docker Desktop** - [Download here](https://www.docker.com/products/docker-desktop/)
 - **Git** - [Download here](https://git-scm.com/downloads) (or download the project as a [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip))
 - **Dropbox Sign Account** - [Sign up here](https://www.hellosign.com) (free account works)
+  
+  **⚠️ Important:** Your account must be either:
+  - A **Developer account** (has API access enabled), OR
+  - An **Administrator account** on a team
+  
+  Regular team members without admin privileges cannot access API features. If you're on a team, ask your administrator to grant you API access or create a separate free developer account for testing.
 
 > **Note:** Docker setup requires NO Node.js installation! Everything runs in containers.
 
@@ -188,6 +194,12 @@ All configuration is done via `docker-compose.yml`. No `.env` file needed!
 - **Redis** - Required for session and data persistence
 - **Git** - [Download here](https://git-scm.com/downloads) (or download the project as a [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip))
 - **Dropbox Sign Account** - [Sign up here](https://www.hellosign.com) (free account works)
+  
+  **⚠️ Important:** Your account must be either:
+  - A **Developer account** (has API access enabled), OR
+  - An **Administrator account** on a team
+  
+  Regular team members without admin privileges cannot access API features. If you're on a team, ask your administrator to grant you API access or create a separate free developer account for testing.
 
 **📘 Windows Users:** See [WINDOWS_SETUP.md](./WINDOWS_SETUP.md) for complete step-by-step installation guide.
 
