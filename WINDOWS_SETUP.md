@@ -185,12 +185,10 @@ cd dropbox-sign-api-demo
 
 If you don't want to install Git:
 
-1. Go to: https://github.com/hellosign/dropbox-sign-api-demo
-2. Click the green **"Code"** button
-3. Click **"Download ZIP"**
-4. Extract the ZIP file to your desired location
+1. Download the [ZIP file](https://github.com/hellosign/dropbox-sign-api-demo/archive/refs/heads/main.zip)
+2. Extract the ZIP to a folder of your choice
    - Example: `C:\Users\YourName\Documents\dropbox-sign-api-demo`
-5. Open Command Prompt and navigate to the extracted folder:
+3. Open Command Prompt and navigate to the extracted folder:
    ```bash
    cd C:\Users\YourName\Documents\dropbox-sign-api-demo
    ```
