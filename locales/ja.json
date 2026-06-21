@@ -193,6 +193,7 @@
   "form.no_templates_for_theme": "このテーマにはテンプレートがありません",
   "form.button.choose_file": "ファイルを選択",
   "buttons.send_signature_template": "署名を依頼する（テンプレート）",
+  "buttons.send_signature_document": "署名を依頼する（ドキュメント）",
   "buttons.view_sign_embedded": "ビュー＆サイン（埋め込みテンプレート）",
   "buttons.prepare_file_unclaimed": "ファイル＆送信の準備（未受領手形）",
   "buttons.prepare_template_unclaimed": "テンプレートの作成と送付（未受領手形）",

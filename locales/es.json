@@ -193,6 +193,7 @@
   "form.no_templates_for_theme": "No hay plantillas para este tema",
   "form.button.choose_file": "Elegir archivo",
   "buttons.send_signature_template": "Enviar para firmar (Plantilla)",
+  "buttons.send_signature_document": "Enviar para firmar (Documento)",
   "buttons.view_sign_embedded": "Ver y firmar (plantilla incrustada)",
   "buttons.prepare_file_unclaimed": "Preparar un expediente y enviar (letra de cambio no reclamada)",
   "buttons.prepare_template_unclaimed": "Preparar una plantilla y enviar (Giro no reclamado)",

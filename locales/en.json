@@ -191,6 +191,7 @@
 	"form.field.phone_number": "Phone Number",
 	"form.field.sms_delivery_note": "(not available in test mode)",
 	"buttons.send_signature_template": "Send for Signature (Template)",
+	"buttons.send_signature_document": "Send for Signature (Document)",
 	"buttons.view_sign_embedded": "View & Sign (Embedded Template)",
 	"buttons.prepare_file_unclaimed": "Prepare a File & Send (Unclaimed Draft)",
 	"buttons.prepare_template_unclaimed": "Prepare a Template & Send (Unclaimed Draft)",

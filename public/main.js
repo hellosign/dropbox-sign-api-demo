@@ -1288,6 +1288,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (portalSettings.selectedTemplate && filtered.some(t => t.id === portalSettings.selectedTemplate)) {
       sel.value = portalSettings.selectedTemplate;
     }
+
+    // Update button states based on template availability
+    updateTemplateButtonStates(filtered.length > 0);
+  }
+
+  function updateTemplateButtonStates(hasTemplates) {
+    const documentMode = document.getElementById('documentMode')?.value;
+    const sendBtn = document.getElementById('sendBtn');
+    const embedBtn = document.getElementById('embedBtn');
+    const unclaimedTemplateBtn = document.getElementById('unclaimedTemplateBtn');
+
+    // Only affect buttons when in template mode (none)
+    if (documentMode === 'none') {
+      if (!hasTemplates) {
+        // "Use Template" mode with no templates - disable template-dependent buttons
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.style.opacity = '0.5';
+          sendBtn.style.cursor = 'not-allowed';
+          sendBtn.title = window.i18n?.noTemplatesForTheme || 'No templates available for this theme';
+        }
+
+        if (embedBtn) {
+          embedBtn.disabled = true;
+          embedBtn.style.opacity = '0.5';
+          embedBtn.style.cursor = 'not-allowed';
+          embedBtn.title = window.i18n?.noTemplatesForTheme || 'No templates available for this theme';
+        }
+
+        if (unclaimedTemplateBtn) {
+          unclaimedTemplateBtn.disabled = true;
+          unclaimedTemplateBtn.style.opacity = '0.5';
+          unclaimedTemplateBtn.style.cursor = 'not-allowed';
+          unclaimedTemplateBtn.title = window.i18n?.noTemplatesForTheme || 'No templates available for this theme';
+        }
+      } else {
+        // Re-enable buttons when templates are available (will be further checked by domain verification)
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.style.opacity = '1';
+          sendBtn.style.cursor = 'pointer';
+          sendBtn.title = '';
+        }
+
+        if (embedBtn) {
+          embedBtn.disabled = false;
+          embedBtn.style.opacity = '1';
+          embedBtn.style.cursor = 'pointer';
+          embedBtn.title = '';
+        }
+
+        if (unclaimedTemplateBtn) {
+          unclaimedTemplateBtn.disabled = false;
+          unclaimedTemplateBtn.style.opacity = '1';
+          unclaimedTemplateBtn.style.cursor = 'pointer';
+          unclaimedTemplateBtn.title = '';
+        }
+
+        // Check domain verification before final enable
+        if (typeof updateEmbeddedButtonStates === 'function') {
+          updateEmbeddedButtonStates();
+        }
+      }
+    }
   }
 
   // Expose applyTheme globally for visual editor
@@ -1438,6 +1502,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   documentModeSelect.addEventListener('change', () => {
     const mode = getDocumentMode();
+    const sendBtn = document.getElementById('sendBtn');
+    const embedBtn = document.getElementById('embedBtn');
+    const unclaimedTemplateBtn = document.getElementById('unclaimedTemplateBtn');
+    const unclaimedFileBtn = document.getElementById('unclaimedFileBtn');
+
     if (mode === 'none') {
       templateSelect.disabled = false;
       templateSelect.setAttribute('required', '');
@@ -1453,6 +1522,130 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       autoAppendChooseBtn.disabled = true;
       resetChooseFileBtn();
+    }
+
+    // Handle button states and text based on document mode
+    if (mode === 'auto-append') {
+      // Auto-append mode: Button 1 is disabled until file is chosen
+      const originalSendText = sendBtn.getAttribute('data-original-text') || sendBtn.textContent;
+      if (!sendBtn.getAttribute('data-original-text')) {
+        sendBtn.setAttribute('data-original-text', originalSendText);
+      }
+
+      // Change button text to "Send for Signature (Document)"
+      sendBtn.textContent = window.i18n?.sendSignatureDocument || 'Send for Signature (Document)';
+
+      // Only enable send button if a file has been chosen
+      if (autoAppendFile) {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+        sendBtn.style.cursor = 'pointer';
+        sendBtn.title = '';
+      } else {
+        sendBtn.disabled = true;
+        sendBtn.style.opacity = '0.5';
+        sendBtn.style.cursor = 'not-allowed';
+        sendBtn.title = 'Please choose a file first';
+      }
+
+      // Disable "View & Sign (Embedded Template)" button
+      if (embedBtn) {
+        embedBtn.disabled = true;
+        embedBtn.style.opacity = '0.5';
+        embedBtn.style.cursor = 'not-allowed';
+      }
+
+      // Keep "Prepare a File & Send (Unclaimed Draft)" enabled
+      if (unclaimedFileBtn) {
+        unclaimedFileBtn.disabled = false;
+        unclaimedFileBtn.style.opacity = '1';
+        unclaimedFileBtn.style.cursor = 'pointer';
+      }
+
+      // Disable "Prepare a Template & Send (Unclaimed Draft)" button
+      if (unclaimedTemplateBtn) {
+        unclaimedTemplateBtn.disabled = true;
+        unclaimedTemplateBtn.style.opacity = '0.5';
+        unclaimedTemplateBtn.style.cursor = 'not-allowed';
+      }
+    } else if (mode === 'text-tags' || mode === 'form-fields') {
+      // Text-tags and form-fields modes: only "Send for Signature" and "Prepare a File & Send" are active
+      const originalSendText = sendBtn.getAttribute('data-original-text') || sendBtn.textContent;
+      if (!sendBtn.getAttribute('data-original-text')) {
+        sendBtn.setAttribute('data-original-text', originalSendText);
+      }
+
+      // Change button text to "Send for Signature (Document)"
+      sendBtn.textContent = window.i18n?.sendSignatureDocument || 'Send for Signature (Document)';
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = '1';
+      sendBtn.style.cursor = 'pointer';
+      sendBtn.title = '';
+
+      // Keep "Prepare a File & Send (Unclaimed Draft)" enabled
+      if (unclaimedFileBtn) {
+        unclaimedFileBtn.disabled = false;
+        unclaimedFileBtn.style.opacity = '1';
+        unclaimedFileBtn.style.cursor = 'pointer';
+      }
+
+      // Disable "View & Sign (Embedded Template)" button
+      if (embedBtn) {
+        embedBtn.disabled = true;
+        embedBtn.style.opacity = '0.5';
+        embedBtn.style.cursor = 'not-allowed';
+      }
+
+      // Disable "Prepare a Template & Send (Unclaimed Draft)" button
+      if (unclaimedTemplateBtn) {
+        unclaimedTemplateBtn.disabled = true;
+        unclaimedTemplateBtn.style.opacity = '0.5';
+        unclaimedTemplateBtn.style.cursor = 'not-allowed';
+      }
+    } else {
+      // Template mode (mode === 'none'): restore original button text
+      const originalText = sendBtn.getAttribute('data-original-text');
+      if (originalText) {
+        sendBtn.textContent = originalText;
+      }
+
+      // Check if templates are available before enabling buttons
+      const hasTemplates = templateSelect && templateSelect.options.length > 1 &&
+                          !templateSelect.options[0].textContent.includes('No templates');
+
+      if (hasTemplates) {
+        // Re-enable buttons when templates are available (will be re-checked by domain verification)
+        if (embedBtn) {
+          embedBtn.disabled = false;
+          embedBtn.style.opacity = '1';
+          embedBtn.style.cursor = 'pointer';
+          embedBtn.title = '';
+        }
+
+        if (unclaimedTemplateBtn) {
+          unclaimedTemplateBtn.disabled = false;
+          unclaimedTemplateBtn.style.opacity = '1';
+          unclaimedTemplateBtn.style.cursor = 'pointer';
+          unclaimedTemplateBtn.title = '';
+        }
+
+        if (sendBtn) {
+          sendBtn.disabled = false;
+          sendBtn.style.opacity = '1';
+          sendBtn.style.cursor = 'pointer';
+          sendBtn.title = '';
+        }
+
+        // Check domain verification and potentially disable again
+        if (typeof updateEmbeddedButtonStates === 'function') {
+          updateEmbeddedButtonStates();
+        }
+      } else {
+        // No templates available - disable all template buttons
+        if (typeof updateTemplateButtonStates === 'function') {
+          updateTemplateButtonStates(false);
+        }
+      }
     }
 
     // Switch Document Editor sub-tabs when form-fields is selected
@@ -1498,6 +1691,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayName = file.name.length > maxLen ? file.name.slice(0, maxLen - 1) + '…' : file.name;
     autoAppendChooseBtn.textContent = displayName + '  ✕';
     autoAppendChooseBtn.classList.add('has-file');
+
+    // Enable send button when file is chosen in auto-append mode
+    if (getDocumentMode() === 'auto-append') {
+      const sendBtn = document.getElementById('sendBtn');
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = '1';
+        sendBtn.style.cursor = 'pointer';
+        sendBtn.title = '';
+      }
+    }
   });
 
   // Save template selection when changed
