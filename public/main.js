@@ -1298,6 +1298,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('sendBtn');
     const embedBtn = document.getElementById('embedBtn');
     const unclaimedTemplateBtn = document.getElementById('unclaimedTemplateBtn');
+    const templateSelect = document.getElementById('templateSelect');
+
+    // Check if a template is actually selected (not just available)
+    const templateSelected = templateSelect && templateSelect.value && templateSelect.value !== '';
 
     // Only affect buttons when in template mode (none)
     if (documentMode === 'none') {
@@ -1323,8 +1327,30 @@ document.addEventListener('DOMContentLoaded', () => {
           unclaimedTemplateBtn.style.cursor = 'not-allowed';
           unclaimedTemplateBtn.title = window.i18n?.noTemplatesForTheme || 'No templates available for this theme';
         }
+      } else if (!templateSelected) {
+        // Templates available but none selected - disable buttons
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.style.opacity = '0.5';
+          sendBtn.style.cursor = 'not-allowed';
+          sendBtn.title = window.i18n?.selectTemplateFirst || 'Please select a template';
+        }
+
+        if (embedBtn) {
+          embedBtn.disabled = true;
+          embedBtn.style.opacity = '0.5';
+          embedBtn.style.cursor = 'not-allowed';
+          embedBtn.title = window.i18n?.selectTemplateFirst || 'Please select a template';
+        }
+
+        if (unclaimedTemplateBtn) {
+          unclaimedTemplateBtn.disabled = true;
+          unclaimedTemplateBtn.style.opacity = '0.5';
+          unclaimedTemplateBtn.style.cursor = 'not-allowed';
+          unclaimedTemplateBtn.title = window.i18n?.selectTemplateFirst || 'Please select a template';
+        }
       } else {
-        // Re-enable buttons when templates are available (will be further checked by domain verification)
+        // Re-enable buttons when templates are available AND one is selected
         if (sendBtn) {
           sendBtn.disabled = false;
           sendBtn.style.opacity = '1';
@@ -1713,6 +1739,17 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ templateId: selectedTemplateId })
       }).catch(err => console.error('Failed to save selected template:', err));
+    }
+
+    // Update button states based on whether a template is actually selected
+    const documentMode = document.getElementById('documentMode')?.value;
+    if (documentMode === 'none') {
+      const templateSelect = document.getElementById('templateSelect');
+      const hasTemplates = templateSelect && templateSelect.options.length > 1 &&
+                          !templateSelect.options[0].textContent.includes('No templates');
+      if (typeof updateTemplateButtonStates === 'function') {
+        updateTemplateButtonStates(hasTemplates);
+      }
     }
   });
 
