@@ -24,3 +24,38 @@ export function buildRequestDetail({ method, apiPath, body, contentType, hasFile
     body: body || null,
   };
 }
+
+/**
+ * Extract API warnings from a successful Dropbox Sign SDK response.
+ * Text-tag issues often surface here instead of as api_error entries.
+ */
+export function extractApiWarnings(result) {
+  if (!result || typeof result !== 'object') return [];
+
+  const warnings = result.body?.warnings
+    || result.warnings
+    || result.data?.warnings
+    || result.response?.body?.warnings
+    || [];
+
+  return Array.isArray(warnings) ? warnings : [];
+}
+
+/**
+ * Normalize warning shape from Dropbox Sign API (camelCase or snake_case).
+ */
+export function normalizeApiWarning(warning) {
+  if (!warning || typeof warning !== 'object') {
+    const message = String(warning || '').trim();
+    return { message, type: '', details: { warningMsg: message } };
+  }
+
+  const message = warning.warningMsg || warning.warning_msg || warning.message || '';
+  const type = warning.warningName || warning.warning_name || '';
+
+  return {
+    message,
+    type,
+    details: warning,
+  };
+}

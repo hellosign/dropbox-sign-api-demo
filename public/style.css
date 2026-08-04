@@ -823,6 +823,25 @@ h1 { margin-bottom:20px; font-size:28px; color:#102a43 }
   width: 100%;
 }
 
+.log-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.log-status-icon svg {
+  display: block;
+}
+
+.log-status-icon--success { color: #166534 }
+.log-status-icon--error { color: #991b1b }
+.log-status-icon--warning { color: #854d0e }
+.log-status-icon--callback { color: #a16207 }
+.log-status-icon--other { color: #1e40af }
+
 .log-badge {
   display: inline-block;
   padding: 2px 8px;
@@ -834,7 +853,60 @@ h1 { margin-bottom:20px; font-size:28px; color:#102a43 }
 }
 
 .log-badge-api { background: #dbeafe; color: #1e40af }
+.log-badge-success { background: #dcfce7; color: #166534 }
+.log-badge-error { background: #fee2e2; color: #991b1b }
+.log-badge-warning { background: #fef9c3; color: #854d0e }
 .log-badge-webhook { background: #fef9c3; color: #854d0e }
+
+.log-card--error { border-left: 4px solid #dc2626 }
+.log-card--warning { border-left: 4px solid #d97706 }
+
+.log-issue-summary {
+  padding: 8px 14px 10px;
+  font-size: 13px;
+  color: #991b1b;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  word-break: break-word;
+}
+
+.log-card--warning .log-issue-summary {
+  color: #92400e;
+  background: #fffbeb;
+  border-top-color: #fde68a;
+}
+
+.api-logs-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  align-items: center;
+}
+
+.api-logs-search {
+  flex: 1;
+  min-width: 180px;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.api-logs-select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  min-width: 160px;
+}
+
+.api-logs-empty-filtered {
+  color: #64748b;
+  font-style: italic;
+  margin-top: 12px;
+}
 
 .log-method { font-weight: 600; color: #1e293b }
 .log-endpoint { color: #475569; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -958,6 +1030,8 @@ h1 { margin-bottom:20px; font-size:28px; color:#102a43 }
 .side-panel-logs .log-card { margin-bottom: 8px }
 .side-panel-logs .log-card-header { padding: 8px 10px; font-size: 12px; gap: 6px }
 .side-panel-logs .log-card-body { max-height: 250px; font-size: 11px; padding: 8px 10px }
+.side-panel-logs .log-status-icon { width: 18px; height: 18px }
+.side-panel-logs .log-status-icon svg { width: 14px; height: 14px }
 .side-panel-logs .log-badge { font-size: 10px; padding: 1px 6px }
 .side-panel-logs .log-method { font-size: 12px }
 .side-panel-logs .log-endpoint { font-size: 12px }

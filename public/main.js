@@ -3237,21 +3237,247 @@ embedBtn.addEventListener('click', async () => {
     return 'https://developers.hellosign.com/';
   }
 
-  function renderLogCards(container, logs) {
+  function formatResponseTime(duration) {
+    if (typeof duration !== 'number' || !Number.isFinite(duration)) return '';
+    return `${Math.round(duration)} ms`;
+  }
+
+  function getLogWarnings(log) {
+    if (log?.error) return [];
+    const response = log?.response;
+    if (!response || typeof response !== 'object') return [];
+    const warnings = response.body?.warnings
+      || response.warnings
+      || response.data?.warnings
+      || [];
+    return Array.isArray(warnings) ? warnings : [];
+  }
+
+  function collectSignatureErrorsFromRequest(signatureRequest, errors) {
+    if (!signatureRequest || typeof signatureRequest !== 'object') return;
+    const signatures = signatureRequest.signatures;
+    if (!Array.isArray(signatures)) return;
+    for (const signature of signatures) {
+      const message = signature?.error || signature?.errorMsg || signature?.error_msg;
+      if (message) errors.push(String(message));
+    }
+  }
+
+  function getSignatureErrorsFromPayload(payload) {
+    if (!payload || typeof payload !== 'object') return [];
+    const errors = [];
+    collectSignatureErrorsFromRequest(payload.signature_request, errors);
+    collectSignatureErrorsFromRequest(payload.signatureRequest, errors);
+    collectSignatureErrorsFromRequest(payload.body?.signatureRequest, errors);
+    collectSignatureErrorsFromRequest(payload.body?.signature_request, errors);
+    collectSignatureErrorsFromRequest(payload.data?.signature_request, errors);
+
+    const signatureLists = [
+      payload.body?.signatureRequests,
+      payload.body?.signature_requests,
+      payload.data?.signature_requests,
+    ];
+    for (const list of signatureLists) {
+      if (!Array.isArray(list)) continue;
+      for (const signatureRequest of list) {
+        collectSignatureErrorsFromRequest(signatureRequest, errors);
+      }
+    }
+    return errors;
+  }
+
+  function getCallbackEventType(log) {
+    const response = log?.response;
+    if (!response || typeof response !== 'object') return '';
+    return response.event?.event_type || response.event?.eventType || '';
+  }
+
+  function getLogSignatureErrors(log) {
+    if (log?.error) return [];
+    return getSignatureErrorsFromPayload(log?.response);
+  }
+
+  const ERROR_CALLBACK_EVENTS = new Set(['signature_request_invalid', 'file_error']);
+
+  function getLogStatusKind(log) {
+    if (log?.type === 'api_error' || log?.status === 'error') return 'error';
+
+    const callbackEvent = log?.type === 'callback' ? getCallbackEventType(log) : '';
+    if (ERROR_CALLBACK_EVENTS.has(callbackEvent)) return 'error';
+
+    if (getLogSignatureErrors(log).length > 0) return 'error';
+    if (getLogWarnings(log).length > 0) return 'warning';
+
+    if (log?.type === 'callback') return 'callback';
+    if (log?.type === 'api_response' || log?.status === 'success') return 'success';
+    return 'other';
+  }
+
+  function getLogIssueSummary(log) {
+    if (log?.error) return log.error;
+
+    const signatureErrors = getLogSignatureErrors(log);
+    if (signatureErrors.length > 0) return signatureErrors[0];
+
+    const callbackEvent = getCallbackEventType(log);
+    if (ERROR_CALLBACK_EVENTS.has(callbackEvent)) {
+      return signatureErrors[0] || `Callback event: ${callbackEvent}`;
+    }
+
+    const warnings = getLogWarnings(log);
+    if (warnings.length === 0) return '';
+    const first = warnings[0];
+    if (!first || typeof first !== 'object') return String(first || '');
+    return first.warningMsg
+      || first.warning_msg
+      || first.warningName
+      || first.warning_name
+      || t('api_logs.issue.warning_fallback');
+  }
+
+  function safeJsonForSearch(value) {
+    if (value == null) return '';
+    if (typeof value === 'string') return value;
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+
+  function buildLogSearchText(log) {
+    return [
+      log?.error,
+      getLogIssueSummary(log),
+      ...getLogSignatureErrors(log),
+      log?.endpoint,
+      log?.method,
+      getLogErrorType(log),
+      getCallbackEventType(log),
+      safeJsonForSearch(log?.requestBody),
+      safeJsonForSearch(log?.response),
+    ].filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function getLogStatusLabel(kind) {
+    const fallbacks = {
+      success: 'Success',
+      error: 'Error',
+      warning: 'Warning',
+      callback: 'Callback',
+      other: 'Other',
+    };
+    const key = `api_logs.status.${kind}`;
+    const translated = t(key);
+    return translated !== key ? translated : (fallbacks[kind] || kind);
+  }
+
+  function escapeHtmlAttr(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;');
+  }
+
+  function getLogStatusIconHtml(kind, label) {
+    const icons = {
+      success: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
+      error: '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>',
+      warning: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>',
+      callback: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>',
+      other: '<polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline>',
+    };
+    const iconClass = {
+      success: 'log-status-icon--success',
+      error: 'log-status-icon--error',
+      warning: 'log-status-icon--warning',
+      callback: 'log-status-icon--callback',
+      other: 'log-status-icon--other',
+    }[kind] || 'log-status-icon--other';
+    const safeLabel = escapeHtmlAttr(label);
+    const paths = icons[kind] || icons.other;
+    return `<span class="log-status-icon ${iconClass}" title="${safeLabel}" aria-label="${safeLabel}" role="img"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg></span>`;
+  }
+
+  function getLogErrorType(log) {
+    if (log?.errorDetails && typeof log.errorDetails === 'object') {
+      const details = log.errorDetails;
+      const fromDetails = details.errorName
+        || details.error_name
+        || details.warningName
+        || details.warning_name;
+      if (fromDetails) return fromDetails;
+    }
+
+    const signatureErrors = getLogSignatureErrors(log);
+    if (signatureErrors.length > 0) {
+      const message = signatureErrors[0];
+      if (/^Text tags error:/i.test(message)) return 'text_tags_error';
+      return 'signature_error';
+    }
+
+    const callbackEvent = getCallbackEventType(log);
+    if (ERROR_CALLBACK_EVENTS.has(callbackEvent)) return callbackEvent;
+
+    const warnings = getLogWarnings(log);
+    if (warnings.length > 0 && warnings[0] && typeof warnings[0] === 'object') {
+      return warnings[0].warningName || warnings[0].warning_name || '';
+    }
+    return '';
+  }
+
+  function buildLogResponseContent(log) {
+    if (log.error) {
+      const content = { error: log.error };
+      if (log.errorDetails) content.errorDetails = log.errorDetails;
+      return content;
+    }
+
+    const warnings = getLogWarnings(log);
+    const signatureErrors = getLogSignatureErrors(log);
+    if (warnings.length > 0 || signatureErrors.length > 0) {
+      return {
+        ...(signatureErrors.length > 0 ? { signatureErrors } : {}),
+        ...(warnings.length > 0 ? { warnings } : {}),
+        response: log.response,
+      };
+    }
+    return log.response;
+  }
+
+  function formatLogTimestamp(timestamp) {
+    return new Date(timestamp).toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  }
+
+  function renderLogCards(container, logs, options = {}) {
+    const showResponseTime = options.showResponseTime === true;
     container.innerHTML = '';
     if (logs.length === 0) {
-      container.innerHTML = '<p style="color:#64748b; font-style:italic; padding:8px;">No API logs yet.</p>';
+      container.innerHTML = `<p style="color:#64748b; font-style:italic; padding:8px;">${t('api_logs.empty')}</p>`;
       return;
     }
     logs.forEach(log => {
+      const statusKind = getLogStatusKind(log);
+      const issueSummary = getLogIssueSummary(log);
+
       const card = document.createElement('div');
       card.className = 'log-card';
+      if (statusKind === 'error') card.classList.add('log-card--error');
+      if (statusKind === 'warning') card.classList.add('log-card--warning');
 
       const header = document.createElement('div');
       header.className = 'log-card-header';
 
-      // Get docs URL for this endpoint (api_response or api_error types)
-      const docsUrl = (log.type === 'api' || log.type === 'api_response' || log.type === 'api_error') ? getDocsUrl(log.endpoint) : null;
+      const docsUrl = (log.type === 'api' || log.type === 'api_response' || log.type === 'api_error')
+        ? getDocsUrl(log.endpoint)
+        : null;
       const docsButton = docsUrl ? `
         <a href="${docsUrl}" target="_blank" rel="noopener noreferrer" class="log-docs-btn" title="View API documentation">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -3262,18 +3488,34 @@ embedBtn.addEventListener('click', async () => {
         </a>
       ` : '';
 
+      const statusLabel = getLogStatusLabel(statusKind);
+      const statusIconHtml = getLogStatusIconHtml(statusKind, statusLabel);
+
+      const responseTimeText = showResponseTime ? formatResponseTime(log.duration) : '';
+      const responseTimeHtml = responseTimeText
+        ? `<span class="log-response-time">${responseTimeText}</span>`
+        : '';
+
       header.innerHTML = `
-        <span class="log-badge ${log.type === 'callback' ? 'log-badge-webhook' : 'log-badge-api'}">${log.type === 'callback' ? 'CALLBACK' : 'API'}</span>
-        <span class="log-method">${log.method}</span>
-        <span class="log-endpoint">${log.endpoint}</span>
+        ${statusIconHtml}
+        <span class="log-method">${log.method || '—'}</span>
+        <span class="log-endpoint">${log.endpoint || '—'}</span>
         <div class="log-header-right">
-          <span class="log-time">${new Date(log.timestamp).toLocaleString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit', second:'2-digit' })}</span>
+          ${responseTimeHtml}
+          <span class="log-time">${formatLogTimestamp(log.timestamp)}</span>
           <button class="log-toggle-btn log-toggle-request">${t('api_logs.show_request')}</button>
           <button class="log-toggle-btn">${t('api_logs.show_response')}</button>
           ${docsButton}
         </div>
       `;
       card.appendChild(header);
+
+      if (issueSummary) {
+        const summary = document.createElement('div');
+        summary.className = 'log-issue-summary';
+        summary.textContent = issueSummary;
+        card.appendChild(summary);
+      }
 
       const requestWrapper = document.createElement('div');
       requestWrapper.className = 'log-card-body-wrapper';
@@ -3302,9 +3544,7 @@ embedBtn.addEventListener('click', async () => {
       copyBtn.textContent = t('api_logs.copy');
       const body = document.createElement('pre');
       body.className = 'log-card-body';
-      // Show error or response
-      const responseContent = log.error ? { error: log.error } : log.response;
-      body.textContent = JSON.stringify(responseContent, null, 2);
+      body.textContent = JSON.stringify(buildLogResponseContent(log), null, 2);
       copyBtn.addEventListener('click', () => {
         navigator.clipboard.writeText(body.textContent).then(() => {
           copyBtn.textContent = t('api_logs.copied');
@@ -3332,6 +3572,106 @@ embedBtn.addEventListener('click', async () => {
     });
   }
 
+  let cachedApiLogs = [];
+
+  function applyApiLogFilters(logs) {
+    const statusFilter = document.getElementById('apiLogsStatusFilter')?.value || 'all';
+    const searchInput = document.getElementById('apiLogsSearchInput');
+    const endpointSelect = document.getElementById('apiLogsEndpointFilter');
+    const term = (searchInput?.value || '').trim().toLowerCase();
+    const endpoint = endpointSelect?.value || '';
+
+    return logs.filter(log => {
+      const kind = getLogStatusKind(log);
+      if (statusFilter === 'issues' && kind !== 'error' && kind !== 'warning') return false;
+      if (statusFilter === 'error' && kind !== 'error') return false;
+      if (statusFilter === 'warning' && kind !== 'warning') return false;
+      if (statusFilter === 'success' && kind !== 'success') return false;
+      if (statusFilter === 'callback' && kind !== 'callback') return false;
+      if (endpoint && log.endpoint !== endpoint) return false;
+      if (term && !buildLogSearchText(log).includes(term)) return false;
+      return true;
+    });
+  }
+
+  function populateApiLogFilterOptions(logs) {
+    const endpointSelect = document.getElementById('apiLogsEndpointFilter');
+    if (!endpointSelect) return;
+
+    const selectedEndpoint = endpointSelect.value;
+    const endpoints = [...new Set(logs.map(log => log.endpoint).filter(Boolean))].sort();
+
+    endpointSelect.innerHTML = '';
+    const endpointDefault = document.createElement('option');
+    endpointDefault.value = '';
+    endpointDefault.textContent = t('api_logs.filter.endpoint');
+    endpointSelect.appendChild(endpointDefault);
+    endpoints.forEach(ep => {
+      const opt = document.createElement('option');
+      opt.value = ep;
+      opt.textContent = ep;
+      endpointSelect.appendChild(opt);
+    });
+
+    endpointSelect.value = endpoints.includes(selectedEndpoint) ? selectedEndpoint : '';
+  }
+
+  let apiLogsSearchTimer = null;
+
+  function bindApiLogFilterHandlers() {
+    const statusFilter = document.getElementById('apiLogsStatusFilter');
+    const searchInput = document.getElementById('apiLogsSearchInput');
+    const endpointSelect = document.getElementById('apiLogsEndpointFilter');
+    const rerender = () => renderFilteredApiLogs({ showResponseTime: true });
+    const rerenderSearch = () => {
+      clearTimeout(apiLogsSearchTimer);
+      apiLogsSearchTimer = setTimeout(rerender, 250);
+    };
+
+    if (statusFilter && !statusFilter.dataset.bound) {
+      statusFilter.dataset.bound = 'true';
+      statusFilter.addEventListener('change', rerender);
+    }
+    if (searchInput && !searchInput.dataset.bound) {
+      searchInput.dataset.bound = 'true';
+      searchInput.addEventListener('input', rerenderSearch);
+    }
+    if (endpointSelect && !endpointSelect.dataset.bound) {
+      endpointSelect.dataset.bound = 'true';
+      endpointSelect.addEventListener('change', rerender);
+    }
+  }
+
+  function renderFilteredApiLogs(options = {}) {
+    const container = document.getElementById('logsContainer');
+    const filterBar = document.getElementById('apiLogsFilterBar');
+    const emptyFiltered = document.getElementById('logsEmptyFiltered');
+    if (!container || !filterBar || !emptyFiltered) return;
+
+    const filtered = applyApiLogFilters(cachedApiLogs);
+    emptyFiltered.style.display = 'none';
+
+    if (cachedApiLogs.length === 0) {
+      filterBar.style.display = 'none';
+      container.style.display = 'none';
+      return;
+    }
+
+    filterBar.style.display = 'flex';
+
+    if (filtered.length === 0) {
+      container.innerHTML = '';
+      container.style.display = 'none';
+      emptyFiltered.textContent = t('api_logs.empty_filtered');
+      emptyFiltered.style.display = 'block';
+      return;
+    }
+
+    emptyFiltered.style.display = 'none';
+    renderLogCards(container, filtered, options);
+    container.style.display = 'block';
+  }
+
   // Silent refresh: updates logs without clearing existing content on failure
   function refreshLogsQuietly() {
     fetchWithCsrf('/api-logs')
@@ -3340,21 +3680,19 @@ embedBtn.addEventListener('click', async () => {
         return res.json();
       })
       .then(logs => {
-        // Refresh main API Logs tab if visible
         const logsTab = document.getElementById('tab-api-logs');
         if (logsTab && logsTab.classList.contains('active')) {
-          const container = document.getElementById('logsContainer');
-          renderLogCards(container, logs);
-          container.style.display = 'block';
+          cachedApiLogs = Array.isArray(logs) ? logs : [];
+          populateApiLogFilterOptions(cachedApiLogs);
+          renderFilteredApiLogs({ showResponseTime: true });
           document.getElementById('logsLoading').style.display = 'none';
         }
-        // Refresh side panel if visible
         const sidePanel = document.getElementById('apiLogSidePanel');
         if (sidePanel && sidePanel.style.display !== 'none') {
           renderLogCards(document.getElementById('sidePanelLogsContainer'), logs);
         }
       })
-      .catch(() => {}); // Silently ignore — keep showing existing logs
+      .catch(() => {});
   }
 
   function loadSidePanelLogs() {
@@ -3416,7 +3754,7 @@ embedBtn.addEventListener('click', async () => {
       loadSidePanelLogs();
       // Also refresh the main logs tab if it was loaded
       const logsContainer = document.getElementById('logsContainer');
-      if (logsContainer.style.display !== 'none') loadApiLogs();
+      if (logsContainer && logsContainer.style.display !== 'none') loadApiLogs();
     });
   }
 
@@ -4928,16 +5266,23 @@ embedBtn.addEventListener('click', async () => {
       })
       .then(logs => {
         loading.style.display = 'none';
+        const filterBar = document.getElementById('apiLogsFilterBar');
+        const emptyFiltered = document.getElementById('logsEmptyFiltered');
 
         if (logs.length === 0) {
+          cachedApiLogs = [];
+          if (filterBar) filterBar.style.display = 'none';
+          if (emptyFiltered) emptyFiltered.style.display = 'none';
           container.innerHTML = '';
-          loading.textContent = 'No API logs yet. Make some API calls first.';
+          loading.textContent = t('api_logs.empty_initial');
           loading.style.display = 'block';
           return;
         }
 
-        renderLogCards(container, logs);
-        container.style.display = 'block';
+        cachedApiLogs = logs;
+        populateApiLogFilterOptions(cachedApiLogs);
+        bindApiLogFilterHandlers();
+        renderFilteredApiLogs({ showResponseTime: true });
 
         // Also refresh side panel if visible
         if (showLogsOnAllScreens && showLogsOnAllScreens.checked) {

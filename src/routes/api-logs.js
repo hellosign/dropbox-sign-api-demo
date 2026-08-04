@@ -2,12 +2,20 @@
 import { Router } from 'express';
 import express from 'express';
 import { requireSession } from '../middleware/auth.js';
+import { filterApiLogs } from '../utils/api-log-filters.js';
 
 const router = Router();
 
 /**
  * GET /api-logs - Get API logs for current user
- * Returns per-user API logs from Redis
+ * Query params:
+ *   status=issues — errors and successful responses with API warnings
+ *   status=error  — api_error entries only
+ *   status=warning|success|callback — filter by log kind
+ *   method        — filter by HTTP method (GET, POST, etc.)
+ *   endpoint      — substring match on endpoint path
+ *   errorType     — substring match on error/warning name
+ *   q             — free-text search across message, endpoint, method, error type
  */
 router.get('/', requireSession, async (req, res) => {
   // Prevent browser caching of user-specific data
@@ -17,7 +25,8 @@ router.get('/', requireSession, async (req, res) => {
   const { getApiLogs } = req.app.locals.redisHelpers;
 
   const userLogs = await getApiLogs(accountId);
-  res.json(userLogs);
+  const filtered = filterApiLogs(userLogs, req.query);
+  res.json(filtered);
 });
 
 /**

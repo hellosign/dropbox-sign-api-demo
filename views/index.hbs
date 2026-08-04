@@ -501,8 +501,25 @@
         {{__ "api_logs.show_on_all_screens"}}
       </label>
     </div>
+
+    <div id="apiLogsFilterBar" class="api-logs-filter-bar" style="display:none;">
+      <select id="apiLogsStatusFilter" class="api-logs-select">
+        <option value="all">{{__ "api_logs.filter.all"}}</option>
+        <option value="issues">{{__ "api_logs.filter.issues"}}</option>
+        <option value="error">{{__ "api_logs.filter.errors"}}</option>
+        <option value="warning">{{__ "api_logs.filter.warnings"}}</option>
+        <option value="success">{{__ "api_logs.filter.success"}}</option>
+        <option value="callback">{{__ "api_logs.filter.callbacks"}}</option>
+      </select>
+      <input id="apiLogsSearchInput" type="search" class="api-logs-search" placeholder="{{__ "api_logs.filter.search"}}" />
+      <select id="apiLogsEndpointFilter" class="api-logs-select">
+        <option value="">{{__ "api_logs.filter.endpoint"}}</option>
+      </select>
+    </div>
+
     <p id="logsLoading" style="color:#64748b; font-style:italic;">Click to load API logs...</p>
     <p id="logsError" style="color:#dc2626; display:none;"></p>
+    <p id="logsEmptyFiltered" class="api-logs-empty-filtered" style="display:none;"></p>
     <div id="logsContainer" style="display:none; margin-top:16px;"></div>
   </div>
 
